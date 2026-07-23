@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LP Forward Pricing Model</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg:       #0d0f0e;
+    --bg2:      #141714;
+    --bg3:      #1a1d1a;
+    --border:   #2a2e2a;
+    --border2:  #353935;
+    --text:     #d4d9d4;
+    --text2:    #7a8a7a;
+    --text3:    #4a574a;
+    --amber:    #c8a84b;
+    --green:    #4caf7d;
+    --red:      #c0504a;
+    --green-bg: rgba(76,175,125,0.08);
+    --red-bg:   rgba(192,80,74,0.08);
+    --mono:     'IBM Plex Mono', monospace;
+    --sans:     'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── Upload screen ── */
+  #upload-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 0;
+  }
+  .upload-box {
+    border: 1px dashed var(--border2);
+    border-radius: 8px;
+    padding: 52px 64px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    max-width: 480px;
+    width: 100%;
+  }
+  .upload-box:hover, .upload-box.drag { border-color: var(--amber); background: rgba(200,168,75,0.04); }
+  .upload-box.drag { border-style: solid; }
+  .upload-icon {
+    font-size: 32px;
+    margin-bottom: 16px;
+    opacity: 0.4;
+  }
+  .upload-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .upload-sub {
+    font-size: 12px;
+    color: var(--text3);
+    line-height: 1.6;
+  }
+  .upload-sub code {
+    font-family: var(--mono);
+    color: var(--text2);
+    font-size: 11px;
+  }
+  .upload-btn {
+    margin-top: 20px;
+    padding: 8px 20px;
+    font-family: var(--mono);
+    font-size: 11px;
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--amber);
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: border-color 0.15s;
+  }
+  .upload-btn:hover { border-color: var(--amber); }
+  .upload-error {
+    margin-top: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--red);
+    display: none;
+  }
+  #file-input { display: none; }
+
+  /* ── App shell ── */
+  #app { display: none; flex-direction: column; min-height: 100vh; }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+  .hdr-ticker {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--amber);
+    letter-spacing: 0.12em;
+  }
+  .hdr-title {
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--text2);
+  }
+  .hdr-right {
+    margin-left: auto;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  .hdr-stat .s-lbl { font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; }
+  .hdr-stat .s-val { font-family: var(--mono); font-size: 12px; color: var(--text); font-weight: 500; }
+  .btn-reload {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 4px 10px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: color 0.1s, border-color 0.1s;
+  }
+  .btn-reload:hover { color: var(--amber); border-color: var(--amber); }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 290px 1fr;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── Sidebar ── */
+  aside {
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 18px 0;
+  }
+  .s-section { padding: 0 18px; margin-bottom: 22px; }
+  .s-section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .field { margin-bottom: 13px; }
+  .field-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+  }
+  .field-label span:first-child { color: var(--text2); font-size: 12px; }
+  .field-value { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--amber); }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%; height: 2px;
+    background: var(--border2); border-radius: 1px; outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--amber); cursor: pointer; transition: transform 0.1s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+  input[type=range]::-moz-range-thumb {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--amber); border: none; cursor: pointer;
+  }
+
+  select {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 7px 10px;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a8a7a'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+  select:focus { border-color: var(--amber); }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 11px;
+    margin-bottom: 5px;
+  }
+  .stat-row .sr-lbl { color: var(--text3); }
+  .stat-row .sr-val { color: var(--text); }
+  .stat-row .sr-val.red { color: var(--red); }
+  .stat-row .sr-val.green { color: var(--green); }
+  .stat-row .sr-val.amber { color: var(--amber); }
+
+  /* ── Main ── */
+  main { overflow-y: auto; display: flex; flex-direction: column; }
+
+  /* ── Metric strip ── */
+  .metric-strip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .metric { padding: 14px 18px; border-right: 1px solid var(--border); }
+  .metric:last-child { border-right: none; }
+  .m-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; color: var(--text3); text-transform: uppercase; margin-bottom: 5px; }
+  .m-value { font-family: var(--mono); font-size: 19px; font-weight: 600; color: var(--amber); line-height: 1; margin-bottom: 3px; }
+  .m-value.green { color: var(--green); }
+  .m-value.red   { color: var(--red); }
+  .m-sub { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+
+  /* ── Content grid ── */
+  .content-grid { display: grid; grid-template-columns: 1fr 1fr; flex: 1; }
+  .panel { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 16px 18px; }
+  .panel:nth-child(2n) { border-right: none; }
+  .panel-full { grid-column: 1 / -1; border-right: none; border-bottom: 1px solid var(--border); padding: 16px 18px; }
+  .panel-title { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; color: var(--text3); text-transform: uppercase; margin-bottom: 12px; }
+  .chart-wrap { position: relative; width: 100%; }
+
+  /* ── Stack ── */
+  .stack-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 10px; border-radius: 3px; margin-bottom: 3px;
+    font-family: var(--mono); font-size: 11px;
+  }
+  .stack-item.cost    { background: var(--red-bg); }
+  .stack-item.benefit { background: var(--green-bg); }
+  .stack-item.neutral { background: var(--bg3); }
+  .stack-item .si-lbl { color: var(--text2); }
+  .stack-item.cost    .si-val { color: var(--red); font-weight: 500; }
+  .stack-item.benefit .si-val { color: var(--green); font-weight: 500; }
+  .stack-item.neutral .si-val { color: var(--text2); }
+  .stack-divider { height: 1px; background: var(--border2); margin: 8px 0; }
+  .stack-total { display: flex; justify-content: space-between; padding: 5px 10px; font-family: var(--mono); font-size: 12px; }
+  .stack-total .st-lbl { color: var(--text2); }
+  .stack-total .st-val { color: var(--amber); font-weight: 600; }
+
+  /* ── P&L table ── */
+  table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11px; }
+  th {
+    color: var(--text3); font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
+    font-size: 10px; padding: 0 8px 8px; text-align: right; border-bottom: 1px solid var(--border);
+  }
+  th:first-child { text-align: left; }
+  td { padding: 7px 8px; text-align: right; border-bottom: 1px solid var(--border); color: var(--text2); }
+  td:first-child { text-align: left; color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+  .pnl-pos { color: var(--green) !important; }
+  .pnl-neg { color: var(--red) !important; }
+  .pnl-bold { font-weight: 600; }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- ══ UPLOAD SCREEN ══ -->
+<div id="upload-screen">
+  <div class="upload-box" id="drop-zone">
+    <div class="upload-icon">↑</div>
+    <div class="upload-title">Drop funding rate CSV here</div>
+    <p class="upload-sub">
+      Export from your exchange — Bybit, OKX, Gate, Binance.<br>
+      Expects columns: <code>Time</code>, <code>Funding Rate</code>, and optionally <code>Contracts</code> / <code>Funding Interval</code>.
+    </p>
+    <button class="upload-btn" id="browse-btn">Browse file</button>
+    <div class="upload-error" id="upload-error"></div>
+  </div>
+  <input type="file" id="file-input" accept=".csv">
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <header>
+    <span class="hdr-ticker" id="hdr-ticker">—</span>
+    <span class="hdr-title">LP Forward Pricing Model · <span id="hdr-cliff">6</span>-month cliff</span>
+    <div class="hdr-right">
+      <div class="hdr-stat"><div class="s-lbl">Data range</div><div class="s-val" id="hdr-range">—</div></div>
+      <div class="hdr-stat"><div class="s-lbl">Periods</div><div class="s-val" id="hdr-periods">—</div></div>
+      <div class="hdr-stat"><div class="s-lbl">Interval</div><div class="s-val" id="hdr-interval">—</div></div>
+      <button class="btn-reload" id="btn-reload">↺ Load new CSV</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- ── SIDEBAR ── -->
+    <aside>
+      <div class="s-section">
+        <div class="s-section-label">Deal parameters</div>
+        <div class="field">
+          <div class="field-label"><span>Spot price (USDT)</span><span class="field-value" id="out-spot">$0.1000</span></div>
+          <input type="range" id="sl-spot" min="0.0001" max="100" step="0.0001" value="0.1">
+        </div>
+        <div class="field">
+          <div class="field-label"><span>Notional size (USD)</span><span class="field-value" id="out-size">$100,000</span></div>
+          <input type="range" id="sl-size" min="10000" max="2000000" step="5000" value="100000">
+        </div>
+        <div class="field">
+          <div class="field-label"><span>Cliff / vest period</span><span class="field-value" id="out-tenor">6 months</span></div>
+          <input type="range" id="sl-tenor" min="1" max="24" step="1" value="6">
+        </div>
+      </div>
+
+      <div class="s-section">
+        <div class="s-section-label">LP economics</div>
+        <div class="field">
+          <div class="field-label"><span>Hurdle rate (ann.)</span><span class="field-value" id="out-hurdle">30%</span></div>
+          <input type="range" id="sl-hurdle" min="5" max="100" step="1" value="30">
+        </div>
+        <div class="field">
+          <div class="field-label"><span>Hedge ratio</span><span class="field-value" id="out-hedge">100%</span></div>
+          <input type="range" id="sl-hedge" min="0" max="100" step="5" value="100">
+        </div>
+        <div class="field">
+          <div class="field-label"><span>Exit slippage</span><span class="field-value" id="out-slip">2.0%</span></div>
+          <input type="range" id="sl-slip" min="0" max="15" step="0.25" value="2.0">
+        </div>
+      </div>
+
+      <div class="s-section">
+        <div class="s-section-label">Funding scenario</div>
+        <div class="field">
+          <select id="sel-scenario"></select>
+        </div>
+        <div class="field" id="custom-field" style="display:none">
+          <div class="field-label"><span>Custom funding rate (ann.)</span><span class="field-value" id="out-custom">0.00%</span></div>
+          <input type="range" id="sl-custom" min="-100" max="50" step="0.1" value="0">
+        </div>
+      </div>
+
+      <div class="s-section">
+        <div class="s-section-label">Funding statistics</div>
+        <div id="funding-stats"></div>
+      </div>
+    </aside>
+
+    <!-- ── MAIN ── -->
+    <main>
+      <div class="metric-strip">
+        <div class="metric">
+          <div class="m-label">Max buy price</div>
+          <div class="m-value" id="m-buyprice">—</div>
+          <div class="m-sub" id="m-buyprice-sub">—</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">Discount to spot</div>
+          <div class="m-value" id="m-disc">—</div>
+          <div class="m-sub" id="m-disc-sub">required</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">Funding tailwind</div>
+          <div class="m-value green" id="m-tail">—</div>
+          <div class="m-sub" id="m-tail-sub">received on short</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">Net carry cost</div>
+          <div class="m-value" id="m-netcarry">—</div>
+          <div class="m-sub">hurdle − funding recv</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">Tokens acquired</div>
+          <div class="m-value" id="m-tokens">—</div>
+          <div class="m-sub" id="m-tokens-sub">at buy price</div>
+        </div>
+      </div>
+
+      <div class="content-grid">
+        <div class="panel">
+          <div class="panel-title">Cost stack decomposition</div>
+          <div id="stack-body"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Buy price sensitivity — hurdle rate</div>
+          <div class="chart-wrap" style="height:180px"><canvas id="chart-hurdle"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Monthly funding rate (ann.) — from CSV</div>
+          <div class="chart-wrap" style="height:180px"><canvas id="chart-monthly"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Buy price vs spot price</div>
+          <div class="chart-wrap" style="height:180px"><canvas id="chart-spot"></canvas></div>
+        </div>
+        <div class="panel-full">
+          <div class="panel-title">P&amp;L scenario analysis at expiry (fully hedged)</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Spot at exit</th>
+                <th>Token P&amp;L</th>
+                <th>Hedge P&amp;L</th>
+                <th>Funding collected</th>
+                <th>Slippage cost</th>
+                <th>Net P&amp;L</th>
+                <th>Return</th>
+                <th>Ann. return</th>
+              </tr>
+            </thead>
+            <tbody id="pnl-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  CSV PARSING
+// ══════════════════════════════════════════════
+
+let CSV_DATA = null; // parsed funding data loaded from file
+let charts = {};
+
+const PNL_SCENARIOS = [
+  {label:'−60%',mult:0.40},{label:'−40%',mult:0.60},{label:'−25%',mult:0.75},
+  {label:'−10%',mult:0.90},{label:'Flat', mult:1.00},{label:'+15%',mult:1.15},
+  {label:'+30%',mult:1.30},{label:'+50%',mult:1.50},{label:'+100%',mult:2.00},
+];
+
+const CHART_OPTS = {
+  color: '#7a8a7a',
+  grid:  'rgba(255,255,255,0.04)',
+  font:  { family: "'IBM Plex Mono', monospace", size: 10 },
+  tooltip: { backgroundColor:'#1a1d1a', titleColor:'#7a8a7a', borderColor:'#2a2e2a', borderWidth:1 },
+};
+
+// ── Parse CSV text into structured data ──
+function parseCSV(text) {
+  // Normalize line endings
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim());
+  if (lines.length < 2) throw new Error('CSV has fewer than 2 rows');
+
+  // Parse header (strip BOM)
+  const rawHeader = lines[0].replace(/^\uFEFF/, '');
+  const headers = rawHeader.split(',').map(h => h.trim().replace(/^"|"$/g,''));
+
+  // Find column indices flexibly
+  function findCol(...candidates) {
+    for (const c of candidates) {
+      const i = headers.findIndex(h => h.toLowerCase().includes(c.toLowerCase()));
+      if (i !== -1) return i;
+    }
+    return -1;
+  }
+
+  const timeIdx     = findCol('time', 'date', 'timestamp');
+  const rateIdx     = findCol('funding rate', 'rate', 'funding');
+  const contractIdx = findCol('contract', 'symbol', 'ticker', 'pair');
+  const intervalIdx = findCol('interval', 'period');
+
+  if (timeIdx === -1) throw new Error('No time/date column found');
+  if (rateIdx === -1) throw new Error('No funding rate column found');
+
+  const rows = [];
+  let ticker = null;
+  let intervalStr = null;
+
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g,''));
+    if (cols.length < 2) continue;
+
+    const timeStr = cols[timeIdx];
+    const rateStr = cols[rateIdx];
+    if (!timeStr || !rateStr) continue;
+
+    const ts = new Date(timeStr);
+    if (isNaN(ts.getTime())) continue;
+
+    // Parse rate — handle both "0.005%" and "0.00005" formats
+    let rate = parseFloat(rateStr.replace('%',''));
+    if (isNaN(rate)) continue;
+    // If value looks like a decimal fraction (abs < 0.01 and no % sign), keep as-is; else /100
+    if (rateStr.includes('%')) rate = rate / 100;
+
+    if (contractIdx !== -1 && !ticker) {
+      // Extract ticker from "GUNUSDT Perpetual" or "GUNUSDT" etc.
+      const raw = cols[contractIdx];
+      const m = raw.match(/^([A-Z0-9]+?)(?:USDT|USDC|USD|BUSD)?(?:\s|_|-|$)/i);
+      ticker = m ? m[1].toUpperCase() : raw.split(/[\s_\-]/)[0].toUpperCase();
+    }
+
+    if (intervalIdx !== -1 && !intervalStr) {
+      intervalStr = cols[intervalIdx];
+    }
+
+    rows.push({ ts, rate });
+  }
+
+  if (rows.length === 0) throw new Error('No valid data rows parsed');
+
+  // Sort ascending
+  rows.sort((a, b) => a.ts - b.ts);
+
+  // Auto-detect funding interval from median gap between consecutive records
+  let detectedInterval = null;
+  if (rows.length > 10) {
+    const gaps = [];
+    for (let i = 1; i < Math.min(rows.length, 100); i++) {
+      gaps.push((rows[i].ts - rows[i-1].ts) / 3600000); // hours
+    }
+    gaps.sort((a,b) => a-b);
+    const medGap = gaps[Math.floor(gaps.length/2)];
+    detectedInterval = Math.round(medGap); // e.g. 4 or 8
+  }
+  const intervalHours = detectedInterval || (intervalStr ? parseFloat(intervalStr) : 8);
+  const periodsPerDay = 24 / intervalHours;
+
+  if (!ticker) ticker = 'TOKEN';
+
+  // Build monthly aggregates
+  const monthMap = {};
+  rows.forEach(r => {
+    const key = r.ts.getFullYear() + '-' + String(r.ts.getMonth()+1).padStart(2,'0');
+    if (!monthMap[key]) monthMap[key] = [];
+    monthMap[key].push(r.rate);
+  });
+  const monthly = Object.entries(monthMap).sort(([a],[b]) => a.localeCompare(b)).map(([key, rates]) => {
+    const mean = rates.reduce((s,v) => s+v, 0) / rates.length;
+    const ann = mean * periodsPerDay * 360;
+    const [y, m] = key.split('-');
+    const label = new Date(+y, +m-1).toLocaleString('en-US',{month:'short',year:'2-digit'});
+    return { key, label, ann, mean, sum: rates.reduce((s,v)=>s+v,0), count: rates.length };
+  });
+
+  // Trailing window statistics
+  const latest = rows[rows.length-1].ts;
+  function trailingStats(days) {
+    const cutoff = new Date(latest - days * 86400000);
+    const sub = rows.filter(r => r.ts >= cutoff);
+    if (sub.length === 0) return null;
+    const mean = sub.reduce((s,r) => s+r.rate, 0) / sub.length;
+    return {
+      ann:   mean * periodsPerDay * 360,
+      cum:   sub.reduce((s,r) => s+r.rate, 0),
+      count: sub.length,
+    };
+  }
+
+  const windows = [
+    { label: 'Custom...', value: 'custom' },
+  ];
+  const windowDays = [30, 60, 90, 182, 365];
+  const windowData = {};
+  windowDays.forEach(d => {
+    const s = trailingStats(d);
+    if (s && s.count > 0) {
+      const label = d === 182 ? '6mo' : d === 365 ? '1yr' : d+'d';
+      const annPct = (s.ann * 100).toFixed(2);
+      const sign = s.ann >= 0 ? '+' : '';
+      const tag = s.ann > 0 ? ' ← headwind' : ' ← tailwind';
+      windows.unshift({ label: `${label.padEnd(4)} (${sign}${annPct}% ann.)${tag}`, value: String(s.ann), days: d });
+      windowData[d] = s;
+    }
+  });
+
+  // Global stats
+  const allRates = rows.map(r => r.rate);
+  const mean = allRates.reduce((s,v)=>s+v,0) / allRates.length;
+  const negPct = allRates.filter(v=>v<0).length / allRates.length * 100;
+  const maxNeg = Math.min(...allRates);
+  const maxPos = Math.max(...allRates);
+  const sorted = [...allRates].sort((a,b)=>a-b);
+  const p5  = sorted[Math.floor(sorted.length*0.05)];
+  const p95 = sorted[Math.floor(sorted.length*0.95)];
+  const variance = allRates.reduce((s,v)=>s+(v-mean)**2,0)/allRates.length;
+  const vol = Math.sqrt(variance) * periodsPerDay * Math.sqrt(360) * 100;
+  const capPct = allRates.filter(v => Math.abs(v - 0.00005) < 0.000001 || Math.abs(v - 0.0005) < 0.00001).length / allRates.length * 100;
+
+  return {
+    rows, ticker, intervalHours, periodsPerDay, monthly, windows, windowData,
+    dateFrom: rows[0].ts, dateTo: rows[rows.length-1].ts, totalPeriods: rows.length,
+    stats: { mean, negPct, maxNeg, maxPos, p5, p95, vol, annMean: mean * periodsPerDay * 360, capPct },
+  };
+}
+
+// ══════════════════════════════════════════════
+//  UPLOAD HANDLING
+// ══════════════════════════════════════════════
+
+function showError(msg) {
+  const el = document.getElementById('upload-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function loadFile(file) {
+  if (!file || !file.name.endsWith('.csv')) { showError('Please select a .csv file'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      CSV_DATA = parseCSV(e.target.result);
+      initApp();
+    } catch(err) {
+      showError('Parse error: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+document.getElementById('browse-btn').addEventListener('click', () => document.getElementById('file-input').click());
+document.getElementById('file-input').addEventListener('change', e => loadFile(e.target.files[0]));
+
+const dropZone = document.getElementById('drop-zone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag');
+  loadFile(e.dataTransfer.files[0]);
+});
+
+document.getElementById('btn-reload').addEventListener('click', () => {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('upload-screen').style.display = 'flex';
+  document.getElementById('file-input').value = '';
+  CSV_DATA = null;
+  Object.values(charts).forEach(c => { try { c.destroy(); } catch(e){} });
+  charts = {};
+});
+
+// ══════════════════════════════════════════════
+//  APP INIT
+// ══════════════════════════════════════════════
+
+function initApp() {
+  const d = CSV_DATA;
+
+  // Header
+  document.getElementById('hdr-ticker').textContent = d.ticker + '/USDT';
+  document.getElementById('hdr-range').textContent =
+    d.dateFrom.toISOString().slice(0,10) + ' → ' + d.dateTo.toISOString().slice(0,10);
+  document.getElementById('hdr-periods').textContent = d.totalPeriods.toLocaleString() + ' × ' + d.intervalHours + 'h';
+  document.getElementById('hdr-interval').textContent = d.intervalHours + 'h / ' + d.periodsPerDay + '×day';
+
+  // Scenario dropdown
+  const sel = document.getElementById('sel-scenario');
+  sel.innerHTML = '';
+  d.windows.forEach(w => {
+    const opt = document.createElement('option');
+    opt.value = w.value;
+    opt.textContent = w.label;
+    // default to 6mo if available, else first numeric
+    if (w.days === 182 || (!sel.querySelector('[selected]') && w.value !== 'custom')) opt.selected = true;
+    sel.appendChild(opt);
+  });
+
+  // Funding stats sidebar
+  const s = d.stats;
+  document.getElementById('funding-stats').innerHTML = `
+    <div class="stat-row"><span class="sr-lbl">Ann. mean</span><span class="sr-val ${s.annMean<0?'red':'green'}">${(s.annMean*100>=0?'+':'')}${(s.annMean*100).toFixed(2)}%</span></div>
+    <div class="stat-row"><span class="sr-lbl">Neg. periods</span><span class="sr-val red">${s.negPct.toFixed(1)}%</span></div>
+    <div class="stat-row"><span class="sr-lbl">At pos. cap</span><span class="sr-val">${s.capPct.toFixed(1)}%</span></div>
+    <div class="stat-row"><span class="sr-lbl">Max spike</span><span class="sr-val red">${(s.maxNeg*100).toFixed(3)}%</span></div>
+    <div class="stat-row"><span class="sr-lbl">P5 rate</span><span class="sr-val">${(s.p5*100).toFixed(4)}%</span></div>
+    <div class="stat-row"><span class="sr-lbl">P95 rate</span><span class="sr-val">${(s.p95*100).toFixed(4)}%</span></div>
+    <div class="stat-row"><span class="sr-lbl">Ann. vol (1σ)</span><span class="sr-val amber">${s.vol.toFixed(1)}%</span></div>
+  `;
+
+  // Spot slider — auto-scale max
+  const slSpot = document.getElementById('sl-spot');
+  slSpot.max = 100;
+  slSpot.step = 0.0001;
+  slSpot.value = 0.1;
+  document.getElementById('out-spot').textContent = '$0.1000';
+
+  // Show app
+  document.getElementById('upload-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+
+  buildMonthlyChart();
+  update();
+}
+
+// ══════════════════════════════════════════════
+//  MODEL
+// ══════════════════════════════════════════════
+
+function getCarry() {
+  const sel = document.getElementById('sel-scenario');
+  if (sel.value === 'custom') return parseFloat(document.getElementById('sl-custom').value) / 100;
+  return parseFloat(sel.value);
+}
+
+function getInputs() {
+  return {
+    spot:   parseFloat(document.getElementById('sl-spot').value),
+    size:   parseFloat(document.getElementById('sl-size').value),
+    tenor:  parseFloat(document.getElementById('sl-tenor').value) / 12,
+    hurdle: parseFloat(document.getElementById('sl-hurdle').value) / 100,
+    hedge:  parseFloat(document.getElementById('sl-hedge').value) / 100,
+    slip:   parseFloat(document.getElementById('sl-slip').value) / 100,
+    carry:  getCarry(),
+  };
+}
+
+function calcBuyPrice(spot, carry, hurdle, slip, hedge, T) {
+  // carry = annualized funding rate from LP's SHORT perspective:
+  //   negative carry → longs pay shorts → we RECEIVE funding (tailwind, reduces discount)
+  //   positive carry → shorts pay longs → we PAY funding (headwind, widens discount)
+  // fundingNet = what we collect (negative) or pay (positive) as a fraction of notional over T
+  const fundingNet = carry * hedge * T; // positive carry = we pay; negative carry = we receive
+  const netCost = hurdle * T + fundingNet + slip; // hurdle + what we pay - what we receive
+  return spot * Math.exp(-netCost);
+}
+
+function fmt$(v, d=4) { return '$' + v.toFixed(d); }
+function fmtSign(v) {
+  const abs = '$' + Math.abs(v).toLocaleString('en-US',{maximumFractionDigits:0});
+  return v >= 0 ? '+' + abs : '-' + abs;
+}
+
+function update() {
+  if (!CSV_DATA) return;
+  const {spot, size, tenor, hurdle, slip, hedge, carry} = getInputs();
+  const T = tenor;
+
+  // carry < 0 → negative funding → we RECEIVE as short (tailwind)
+  // carry > 0 → positive funding → we PAY as short (headwind)
+  const fundingNet = carry * hedge * T;     // + = we pay, - = we receive
+  const fundingReceived = -fundingNet;      // + = cash inflow, - = cash outflow
+  const hurdleCost = hurdle * T;
+  const netCarry = hurdleCost + fundingNet; // total cost fraction (excl. slippage)
+  const buyPrice = calcBuyPrice(spot, carry, hurdle, slip, hedge, T);
+  const discPct = 1 - buyPrice / spot;
+  const tokens = size / buyPrice;
+  const fundingUSD = fundingReceived * size; // + = we collect, - = we pay
+  const moLabel = T < 0.25 ? '<1mo' : (T*12).toFixed(0) + 'mo';
+
+  // Update cliff label in header
+  document.getElementById('hdr-cliff').textContent = (T*12).toFixed(0);
+
+  // Metrics
+  document.getElementById('m-buyprice').textContent = fmt$(buyPrice, 5);
+  document.getElementById('m-buyprice-sub').textContent = (discPct*100).toFixed(2) + '% below spot';
+  document.getElementById('m-disc').textContent = (discPct*100).toFixed(2) + '%';
+  document.getElementById('m-disc-sub').textContent = 'vs $' + spot.toFixed(4) + ' spot';
+  document.getElementById('m-tail').textContent = (fundingReceived >= 0 ? '+' : '') + (fundingReceived*100).toFixed(2) + '%';
+  document.getElementById('m-tail').className = 'm-value ' + (fundingReceived >= 0 ? 'green' : 'red');
+  document.getElementById('m-tail-sub').textContent = (fundingReceived >= 0 ? 'received on short · $' : 'paid on short · $') + Math.abs(Math.round(fundingUSD)).toLocaleString();
+  document.getElementById('m-netcarry').textContent = (netCarry*100).toFixed(2) + '%';
+  document.getElementById('m-tokens').textContent = Math.round(tokens).toLocaleString();
+  document.getElementById('m-tokens-sub').textContent = 'notional $' + (size/1000).toFixed(0) + 'k';
+
+  // Cost stack — funding row flips based on carry sign
+  const fundingIsTailwind = carry < 0; // negative carry = shorts receive
+  const fundingStackItem = fundingIsTailwind
+    ? { type:'benefit', label:`Funding received on short (${moLabel})`, val: '−' + (fundingReceived*100).toFixed(2) + '% tailwind' }
+    : { type:'cost',    label:`Funding paid on short (${moLabel})`,     val: '+' + (Math.abs(fundingNet)*100).toFixed(2) + '% headwind' };
+
+  const stackItems = [
+    { type:'cost',  label:`Hurdle rate (${moLabel})`, val: '+' + (hurdleCost*100).toFixed(2) + '%' },
+    fundingStackItem,
+    { type:'cost',  label:'Exit slippage buffer',     val: '+' + (slip*100).toFixed(2) + '%' },
+  ];
+  if (hedge < 1) stackItems.push({ type:'neutral', label:`Unhedged delta (${((1-hedge)*100).toFixed(0)}%)`, val: 'directional' });
+
+  let html = '';
+  stackItems.forEach(s => {
+    html += `<div class="stack-item ${s.type}"><span class="si-lbl">${s.label}</span><span class="si-val">${s.val}</span></div>`;
+  });
+  html += '<div class="stack-divider"></div>';
+  html += `<div class="stack-total"><span class="st-lbl">Required discount from spot</span><span class="st-val">${(discPct*100).toFixed(2)}%</span></div>`;
+  html += `<div class="stack-total"><span class="st-lbl">Max buy price</span><span class="st-val">${fmt$(buyPrice,5)}</span></div>`;
+  html += `<div class="stack-total"><span class="st-lbl">Funding P&L (${moLabel})</span><span class="st-val" style="color:${fundingUSD>=0?'var(--green)':'var(--red)'}">${fmtSign(fundingUSD)}</span></div>`;
+  document.getElementById('stack-body').innerHTML = html;
+
+  // P&L table
+  let pnlHtml = '';
+  PNL_SCENARIOS.forEach(sc => {
+    const exitSpot = spot * sc.mult;
+    const tokenPnL = (exitSpot - buyPrice) * tokens;
+    const hedgePnL = hedge * (buyPrice - exitSpot) * tokens;
+    const slipCost = slip * size;
+    const net = tokenPnL + hedgePnL + fundingUSD - slipCost;
+    const ret = net / size;
+    const annRet = ret / T;
+    const cls = net >= 0 ? 'pnl-pos' : 'pnl-neg';
+    const bg = sc.mult === 1.00 ? 'background:rgba(200,168,75,0.04);' : '';
+    pnlHtml += `<tr style="${bg}">
+      <td>${sc.label} → ${fmt$(exitSpot,4)}</td>
+      <td class="${tokenPnL>=0?'pnl-pos':'pnl-neg'}">${fmtSign(tokenPnL)}</td>
+      <td class="${hedgePnL>=0?'pnl-pos':'pnl-neg'}">${fmtSign(hedgePnL)}</td>
+      <td class="${fundingUSD>=0?'pnl-pos':'pnl-neg'}">${fmtSign(fundingUSD)}</td>
+      <td class="pnl-neg">-$${Math.round(slipCost).toLocaleString()}</td>
+      <td class="${cls} pnl-bold">${fmtSign(net)}</td>
+      <td class="${cls} pnl-bold">${(ret*100).toFixed(1)}%</td>
+      <td class="${cls}">${(annRet*100).toFixed(1)}%</td>
+    </tr>`;
+  });
+  document.getElementById('pnl-body').innerHTML = pnlHtml;
+
+  updateDynamicCharts(spot, carry, hurdle, slip, hedge, T);
+}
+
+// ══════════════════════════════════════════════
+//  CHARTS
+// ══════════════════════════════════════════════
+
+function buildMonthlyChart() {
+  if (charts.monthly) charts.monthly.destroy();
+  const monthly = CSV_DATA.monthly;
+  const labels = monthly.map(m => m.label);
+  const data   = monthly.map(m => +(m.ann * 100).toFixed(4));
+  const colors = data.map(v => v < 0 ? 'rgba(192,80,74,0.75)' : 'rgba(76,175,125,0.75)');
+  const borders= data.map(v => v < 0 ? '#c0504a' : '#4caf7d');
+
+  charts.monthly = new Chart(document.getElementById('chart-monthly'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: borders, borderWidth: 1, borderRadius: 2 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        ...CHART_OPTS.tooltip,
+        callbacks: { label: ctx => (ctx.raw >= 0 ? '+' : '') + ctx.raw.toFixed(2) + '% ann.' },
+        bodyColor: '#d4d9d4',
+      }},
+      scales: {
+        x: { ticks: { color: CHART_OPTS.color, font: CHART_OPTS.font, maxRotation: 45, autoSkip: true, maxTicksLimit: 13 }, grid: { color: CHART_OPTS.grid } },
+        y: { ticks: { color: CHART_OPTS.color, font: CHART_OPTS.font, callback: v => v.toFixed(0)+'%' }, grid: { color: CHART_OPTS.grid } }
+      }
+    }
+  });
+}
+
+function updateDynamicCharts(spot, carry, hurdle, slip, hedge, T) {
+  // Hurdle sensitivity chart
+  const hLabels = [], hData = [];
+  for (let h = 0.05; h <= 1.00; h += 0.05) {
+    hLabels.push((h*100).toFixed(0) + '%');
+    hData.push(+calcBuyPrice(spot, carry, h, slip, hedge, T).toFixed(6));
+  }
+  if (charts.hurdle) charts.hurdle.destroy();
+  charts.hurdle = new Chart(document.getElementById('chart-hurdle'), {
+    type: 'line',
+    data: { labels: hLabels, datasets: [{
+      data: hData, borderColor: '#c8a84b', backgroundColor: 'rgba(200,168,75,0.06)',
+      fill: true, pointRadius: 0, tension: 0.3, borderWidth: 1.5,
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        ...CHART_OPTS.tooltip, bodyColor: '#c8a84b',
+        callbacks: { label: ctx => fmt$(ctx.raw,5), title: ctx => 'Hurdle ' + ctx[0].label },
+      }},
+      scales: {
+        x: { ticks: { color: CHART_OPTS.color, font: CHART_OPTS.font, maxTicksLimit: 8 }, grid: { color: CHART_OPTS.grid } },
+        y: { ticks: { color: CHART_OPTS.color, font: CHART_OPTS.font, callback: v => '$'+v.toFixed(3) }, grid: { color: CHART_OPTS.grid } }
+      }
+    }
+  });
+
+  // Spot sensitivity chart
+  const sLabels = [], sData = [], spotLine = [];
+  for (let i = 0; i <= 20; i++) {
+    const s = spot * 0.3 + spot * 1.7 * i / 20;
+    sLabels.push('$' + s.toFixed(4));
+    sData.push(+calcBuyPrice(s, carry, hurdle, slip, hedge, T).toFixed(6));
+    spotLine.push(+s.toFixed(6));
+  }
+  if (charts.spot) charts.spot.destroy();
+  charts.spot = new Chart(document.getElementById('chart-spot'), {
+    type: 'line',
+    data: { labels: sLabels, datasets: [
+      { label:'Buy price', data: sData, borderColor:'#4caf7d', backgroundColor:'rgba(76,175,125,0.06)', fill:true, pointRadius:0, tension:0.3, borderWidth:1.5 },
+      { label:'Spot',      data: spotLine, borderColor:'#4a574a', borderDash:[4,3], pointRadius:0, tension:0, borderWidth:1 },
+    ]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        ...CHART_OPTS.tooltip, bodyColor: '#4caf7d',
+        callbacks: { label: ctx => ctx.datasetIndex === 0 ? 'Buy: '+fmt$(ctx.raw,5) : 'Spot: '+fmt$(ctx.raw,4) },
+      }},
+      scales: {
+        x: { ticks: { color: CHART_OPTS.color, font: CHART_OPTS.font, maxTicksLimit: 6 }, grid: { color: CHART_OPTS.grid } },
+        y: { ticks: { color: CHART_OPTS.color, font: CHART_OPTS.font, callback: v => '$'+v.toFixed(4) }, grid: { color: CHART_OPTS.grid } }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════
+//  INPUT BINDINGS
+// ══════════════════════════════════════════════
+
+function bind(id, outId, fmt) {
+  document.getElementById(id).addEventListener('input', function() {
+    document.getElementById(outId).textContent = fmt(parseFloat(this.value));
+    update();
+  });
+}
+
+bind('sl-spot',   'out-spot',   v => '$' + v.toFixed(4));
+bind('sl-size',   'out-size',   v => '$' + v.toLocaleString('en-US',{maximumFractionDigits:0}));
+bind('sl-tenor',  'out-tenor',  v => v + (v===1?' month':' months'));
+bind('sl-hurdle', 'out-hurdle', v => v.toFixed(0) + '%');
+bind('sl-hedge',  'out-hedge',  v => v.toFixed(0) + '%');
+bind('sl-slip',   'out-slip',   v => v.toFixed(2) + '%');
+bind('sl-custom', 'out-custom', v => (v>=0?'+':'')+v.toFixed(2)+'%');
+
+document.getElementById('sel-scenario').addEventListener('change', function() {
+  document.getElementById('custom-field').style.display = this.value === 'custom' ? 'block' : 'none';
+  update();
+});
+</script>
+</body>
+</html>
