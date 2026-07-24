@@ -65,20 +65,22 @@
   }
 
   .grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
-    gap:14px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
   }
 
   .card{
     border:1px solid var(--border);
     background:var(--panel);
-    padding:18px;
+    padding:16px 20px;
     text-decoration:none;
     color:var(--text);
-    display:block;
+    display:flex;
+    align-items:center;
+    gap:20px;
     position:relative;
-    transition:border-color .15s ease, transform .1s ease;
+    transition:border-color .15s ease;
   }
   .card:hover{
     border-color:var(--accent);
@@ -90,27 +92,35 @@
     letter-spacing:1px;
     color:var(--accent);
     text-transform:uppercase;
-    margin-bottom:10px;
-    display:block;
+    flex:0 0 90px;
   }
   .card h2{
-    font-size:15px;
+    font-size:14px;
     font-weight:600;
-    margin-bottom:8px;
     letter-spacing:0.2px;
+    flex:0 0 220px;
   }
   .card p{
     font-size:12px;
-    line-height:1.5;
+    line-height:1.4;
     color:var(--dim);
-    margin-bottom:16px;
+    flex:1;
+    margin:0;
   }
   .go{
     font-size:11px;
     color:var(--dim);
     letter-spacing:0.5px;
+    flex:0 0 auto;
+    white-space:nowrap;
   }
   .go::after{content:" →";}
+
+  @media (max-width:700px){
+    .card{flex-wrap:wrap;}
+    .card h2{flex:1 1 100%;}
+    .card p{flex:1 1 100%;}
+  }
 
   footer{
     margin-top:40px;
