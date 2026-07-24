@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Client Volume Tracker</title>
+<style>
+  :root{
+    --bg:#141414; --bg2:#1c1c1c; --panel:#202020; --border:#333;
+    --orange:#ff9900; --orange-dim:#7a4f0a; --text:#f0f0f0; --text-dim:#9a9a9a;
+    --green:#3ecf5e; --red:#ff5c5c;
+    --mono:'IBM Plex Mono','Consolas',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg); color:var(--text); font-family:var(--mono);
+    margin:0; padding:24px; font-size:13px;
+  }
+  h1{ color:var(--orange); font-size:20px; letter-spacing:1px; margin:0 0 4px; text-transform:uppercase;}
+  .sub{ color:var(--text-dim); font-size:12px; margin-bottom:20px;}
+  .panel{
+    background:var(--panel); border:1px solid var(--border); border-radius:4px;
+    padding:16px; margin-bottom:16px;
+  }
+  .panel h2{
+    color:var(--orange); font-size:13px; text-transform:uppercase; letter-spacing:0.5px;
+    margin:0 0 12px; border-bottom:1px solid var(--border); padding-bottom:8px;
+  }
+  .row{ display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin-bottom:10px;}
+  input[type=file]{ color:var(--text); font-family:var(--mono); font-size:12px;}
+  input[type=number], input[type=text]{
+    background:var(--bg2); border:1px solid var(--border); color:var(--text);
+    padding:6px 8px; font-family:var(--mono); font-size:12px; border-radius:3px;
+  }
+  button{
+    background:var(--bg2); border:1px solid var(--orange-dim); color:var(--orange);
+    padding:7px 14px; font-family:var(--mono); font-size:12px; border-radius:3px;
+    cursor:pointer; text-transform:uppercase; letter-spacing:0.5px;
+  }
+  button:hover{ background:var(--orange-dim); color:#fff;}
+  button.small{ padding:4px 8px; font-size:11px;}
+  label{ color:var(--text-dim); font-size:12px;}
+  .status{ color:var(--text-dim); font-size:12px; margin-top:8px;}
+  .status.ok{ color:var(--green);}
+  .status.err{ color:var(--red);}
+
+  .clean-cols{ display:flex; gap:16px;}
+  .clean-col{ flex:1; min-width:280px;}
+  .clean-col h3{ font-size:12px; color:var(--text); margin:0 0 8px; text-transform:uppercase;}
+  .list-box{
+    background:var(--bg2); border:1px solid var(--border); border-radius:3px;
+    height:260px; overflow-y:auto; padding:6px;
+  }
+  .list-item{
+    display:flex; align-items:center; gap:8px; padding:4px 6px; font-size:12px;
+    border-radius:2px;
+  }
+  .list-item:hover{ background:#2a2a2a;}
+  .list-item .name{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .list-item .vol{ color:var(--text-dim); font-size:11px;}
+  .list-item.excluded .name{ color:var(--red); text-decoration:line-through;}
+  .list-item.excluded .vol{ color:#6a3a3a;}
+
+  table{ border-collapse:collapse; width:100%; font-size:12px; }
+  th,td{ padding:5px 8px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--border);}
+  th{ color:var(--orange); text-transform:uppercase; font-size:10px; letter-spacing:0.5px; position:sticky; top:0; background:var(--panel); cursor:pointer;}
+  th.client-col,td.client-col{ text-align:left; position:sticky; left:0; background:var(--panel); min-width:180px; z-index:2;}
+  td.client-col{ background:var(--bg2);}
+  .table-wrap{ overflow:auto; max-height:560px; border:1px solid var(--border); border-radius:4px;}
+  tr:nth-child(even) td{ background:rgba(255,255,255,0.02);}
+  .pos{ color:var(--green);}
+  .neg{ color:var(--red);}
+  .dash{ color:#555;}
+  .total-row td{ background:var(--bg2); color:var(--orange); font-weight:bold; border-top:2px solid var(--orange-dim);}
+
+  #chartWrap{ position:relative; width:100%; height:420px;}
+  #legend{ display:flex; flex-wrap:wrap; gap:6px; margin-top:12px;}
+  .pill{
+    cursor:pointer; padding:3px 9px; border-radius:3px; font-size:11px;
+    border:1px solid var(--border); display:flex; align-items:center; gap:6px;
+  }
+  .swatch{ width:8px; height:8px; border-radius:2px; display:inline-block;}
+  .scale-btns button.active{ background:var(--orange-dim); color:#fff;}
+  .hint{ color:var(--text-dim); font-size:11px; margin-top:6px;}
+  td.week-cell{ cursor:pointer;}
+  td.week-cell:hover{ background:rgba(255,153,0,0.15) !important;}
+  #drillTable{ width:100%; border-collapse:collapse; font-size:11px;}
+  #drillTable th{ color:var(--orange); text-align:left; padding:5px 8px; border-bottom:1px solid var(--border); position:static; background:none;}
+  #drillTable td{ padding:4px 8px; border-bottom:1px solid #2a2a2a; text-align:left; white-space:nowrap;}
+  #drillTable tr:nth-child(even) td{ background:rgba(255,255,255,0.02);}
+</style>
+</head>
+<body>
+
+<h1>Client volume tracker</h1>
+<div class="sub">Upload a raw trade CSV to rebuild the weekly-by-client table and trend chart. Timestamp / client_name / symbol / price / quantity / amount / amount_currency columns expected.</div>
+
+<div class="panel">
+  <h2>1. Load data</h2>
+  <div class="row">
+    <input type="file" id="fileInput" accept=".csv">
+    <label>Weeks to show:</label>
+    <input type="number" id="numWeeks" value="10" min="2" max="26" style="width:60px;">
+    <button id="rebuildBtn" disabled>Rebuild</button>
+    <button id="exportPdfBtn" disabled>Export to PDF</button>
+  </div>
+  <div class="status" id="status">No file loaded.</div>
+</div>
+
+<div class="panel" id="cleanPanel" style="display:none;">
+  <h2>2. Clean data — deselect to exclude</h2>
+  <div class="clean-cols">
+    <div class="clean-col">
+      <h3>Counterparties (clients)</h3>
+      <div class="row" style="margin-bottom:6px;">
+        <input type="text" id="clientSearch" placeholder="filter..." style="flex:1;">
+        <button class="small" id="clientAll">All</button>
+        <button class="small" id="clientNone">None</button>
+      </div>
+      <div class="list-box" id="clientList"></div>
+    </div>
+    <div class="clean-col">
+      <h3>Pairs (symbols)</h3>
+      <div class="row" style="margin-bottom:6px;">
+        <input type="text" id="symbolSearch" placeholder="filter..." style="flex:1;">
+        <button class="small" id="symbolAll">All</button>
+        <button class="small" id="symbolNone">None</button>
+      </div>
+      <div class="list-box" id="symbolList"></div>
+    </div>
+  </div>
+  <div class="row" style="margin-top:12px;">
+    <button id="applyBtn">Apply & rebuild</button>
+    <span class="hint" id="cleanHint"></span>
+  </div>
+</div>
+
+<div class="panel" id="chartPanel" style="display:none;">
+  <h2>3. Weekly trend — top 25 clients by total volume</h2>
+  <div class="row scale-btns">
+    <button id="btnLinear" class="active">Linear</button>
+    <button id="btnLog">Log scale</button>
+    <span class="hint">Click a pill below to toggle a line on/off.</span>
+  </div>
+  <div id="chartWrap">
+    <canvas id="chart"></canvas>
+  </div>
+  <div id="legend"></div>
+</div>
+
+<div class="panel" id="tablePanel" style="display:none;">
+  <h2>4. Weekly volume by client</h2>
+  <div class="row">
+    <input type="text" id="tableSearch" placeholder="filter clients...">
+    <span class="hint">Click a column header to sort. Click any week cell to see the trades behind it.</span>
+  </div>
+  <div class="table-wrap">
+    <table id="dataTable"></table>
+  </div>
+</div>
+
+<div id="drillModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:100; align-items:center; justify-content:center;">
+  <div id="drillPanel" style="background:var(--panel); border:1px solid var(--border); border-radius:6px; width:min(920px,92vw); max-height:82vh; overflow:auto; padding:18px 20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:12px;">
+      <h3 id="drillTitle" style="color:var(--orange); margin:0; font-size:13px; font-weight:normal;"></h3>
+      <button class="small" id="drillClose">Close</button>
+    </div>
+    <table id="drillTable"></table>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+const STABLE = new Set(['USD','USDC','USDT','FDUSD']);
+
+const DEFAULT_EXCLUDED_CLIENTS = new Set([
+"binance_portfolio_margin","Paxos","CoW Swap DEX","binance","laser_digital","bullish",
+"Silverstone","Wakem","852963741","Nonco LLC BRA","Jupiter Exchange","galaxy","bybit","Curve",
+"wintermute","janestreet","okex","XFX","Coinzoom","coinbase","cumberland","kucoin","wincent","b2c2",
+"dvchain","binance_futures","HYPERLIQUID","Ibex Mercado","Tizornica","Crossover","gate_io","Blockens",
+"Hop Innovations","Liquid Latam BVI","Mexc (Cefi)","Ravenswood","Enor Digital Assets BRA","Uniswap (Defi)",
+"Bitrus","Plusservice","Pancake Swap","Internal Apr 10","Bitso","BFF United (UglyCash)","Aerapass",
+"Trillion","Trader Joe DEFI","Solcap","bitget","Trubit Brazil","Breeze Cash","CBPay (DE)","Trubit",
+"crossover","Benky","Altitude","1Money Bermuda","Neomoney"
+]);
+
+let RAW_ROWS = [];
+let excludedClients = new Set();
+let excludedSymbols = new Set();
+let autoExcludedClients = new Set(); // clients excluded automatically because 100% of their volume is on excluded pairs
+let CLIENT_SYMBOL_VOL = {}; // client -> { symbol -> usd volume }
+let currentResult = null;
+let sortKey = 'total';
+let sortDir = -1;
+let chartInstance = null;
+let chartActive = new Set();
+let logScale = false;
+
+const COVE = ['#ff9900','#3ecf5e','#4aa3ff','#e87ba4','#eda100','#9b7bd4','#e34948','#5dcaa5'];
+
+function usdVolume(row){
+  const amount = parseFloat(row.amount);
+  const price = parseFloat(row.price);
+  if (STABLE.has(row.amount_currency)) return amount;
+  return amount * price;
+}
+
+function fmtMoney(v){
+  if (v === null || v === undefined || isNaN(v)) return '<span class="dash">-</span>';
+  if (v === 0) return '<span class="dash">-</span>';
+  const abs = Math.abs(v);
+  let s;
+  if (abs >= 1e6) s = '$' + (v/1e6).toFixed(2) + 'M';
+  else if (abs >= 1e3) s = '$' + (v/1e3).toFixed(0) + 'K';
+  else s = '$' + v.toFixed(0);
+  return s;
+}
+
+function fmtPct(v){
+  if (v === null || v === undefined || isNaN(v)) return '<span class="dash">-</span>';
+  const cls = v > 0 ? 'pos' : (v < 0 ? 'neg' : '');
+  const sign = v > 0 ? '+' : '';
+  return `<span class="${cls}">${sign}${(v*100).toFixed(1)}%</span>`;
+}
+
+function fmtSignedMoney(v){
+  if (v === null || v === undefined || isNaN(v)) return '<span class="dash">-</span>';
+  const cls = v > 0 ? 'pos' : (v < 0 ? 'neg' : '');
+  const sign = v > 0 ? '+' : '';
+  return `<span class="${cls}">${sign}${fmtMoney(v)}</span>`;
+}
+
+// Plain-text versions (no HTML) for PDF export and the drill-down modal.
+function fmtMoneyPlain(v){
+  if (v === null || v === undefined || isNaN(v) || v === 0) return '-';
+  const sign = v < 0 ? '-' : '';
+  const abs = Math.abs(v);
+  if (abs >= 1e6) return sign + '$' + (abs/1e6).toFixed(2) + 'M';
+  if (abs >= 1e3) return sign + '$' + (abs/1e3).toFixed(0) + 'K';
+  return sign + '$' + abs.toFixed(0);
+}
+function fmtSignedMoneyPlain(v){
+  if (v === null || v === undefined || isNaN(v)) return '-';
+  return (v > 0 ? '+' : '') + fmtMoneyPlain(v);
+}
+function fmtPctPlain(v){
+  if (v === null || v === undefined || isNaN(v)) return '-';
+  return (v > 0 ? '+' : '') + (v*100).toFixed(1) + '%';
+}
+function fmtNumPlain(v){
+  if (v === null || v === undefined || isNaN(v)) return '-';
+  return v.toLocaleString(undefined, {maximumFractionDigits:6});
+}
+
+document.getElementById('fileInput').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('status');
+  statusEl.textContent = 'Parsing...';
+  statusEl.className = 'status';
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: function(res){
+      RAW_ROWS = res.data.filter(r => r.client_name && r.timestamp && r.amount !== undefined);
+      statusEl.textContent = `Loaded ${RAW_ROWS.length.toLocaleString()} rows.`;
+      statusEl.className = 'status ok';
+      document.getElementById('rebuildBtn').disabled = false;
+      buildCleaningLists();
+      rebuild();
+    },
+    error: function(err){
+      statusEl.textContent = 'Parse error: ' + err.message;
+      statusEl.className = 'status err';
+    }
+  });
+});
+
+function buildCleaningLists(){
+  const clientVol = {};
+  const symbolVol = {};
+  CLIENT_SYMBOL_VOL = {};
+  RAW_ROWS.forEach(r => {
+    const v = usdVolume(r);
+    if (isNaN(v)) return;
+    clientVol[r.client_name] = (clientVol[r.client_name] || 0) + v;
+    symbolVol[r.symbol] = (symbolVol[r.symbol] || 0) + v;
+    if (!CLIENT_SYMBOL_VOL[r.client_name]) CLIENT_SYMBOL_VOL[r.client_name] = {};
+    CLIENT_SYMBOL_VOL[r.client_name][r.symbol] = (CLIENT_SYMBOL_VOL[r.client_name][r.symbol] || 0) + v;
+  });
+  excludedClients = new Set([...DEFAULT_EXCLUDED_CLIENTS].filter(c => clientVol.hasOwnProperty(c)));
+  excludedSymbols = new Set();
+  autoExcludedClients = new Set();
+
+  renderSymbolList(symbolVol);
+  renderClientList(clientVol);
+  document.getElementById('cleanPanel').style.display = 'block';
+  updateCleanHint();
+}
+
+// clientVol here is the TOTAL per client, used only to build the initial row order/list.
+// Displayed volume is always recomputed live from CLIENT_SYMBOL_VOL against current excludedSymbols,
+// so a client's number reflects what's actually left after pair exclusions.
+function renderClientList(clientVol){
+  const container = document.getElementById('clientList');
+  const entries = Object.entries(clientVol).sort((a,b) => b[1]-a[1]);
+  container.innerHTML = '';
+  entries.forEach(([name]) => {
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.dataset.name = name;
+    div.innerHTML = `<input type="checkbox">
+      <span class="name" title="${name}">${name}</span>
+      <span class="vol"></span>`;
+    const cb = div.querySelector('input');
+    cb.addEventListener('change', () => {
+      // A manual click always overrides any auto-exclude state for this client.
+      autoExcludedClients.delete(name);
+      if (cb.checked) { excludedClients.delete(name); }
+      else { excludedClients.add(name); }
+      refreshClientListDisplay();
+      updateCleanHint();
+    });
+    container.appendChild(div);
+  });
+  refreshClientListDisplay();
+}
+
+function renderSymbolList(symbolVol){
+  const container = document.getElementById('symbolList');
+  const entries = Object.entries(symbolVol).sort((a,b) => b[1]-a[1]);
+  container.innerHTML = '';
+  entries.forEach(([name, vol]) => {
+    const div = document.createElement('div');
+    div.className = 'list-item' + (excludedSymbols.has(name) ? ' excluded' : '');
+    div.dataset.name = name;
+    div.innerHTML = `<input type="checkbox" ${excludedSymbols.has(name) ? '' : 'checked'}>
+      <span class="name" title="${name}">${name}</span>
+      <span class="vol">${fmtMoney(vol)}</span>`;
+    const cb = div.querySelector('input');
+    cb.addEventListener('change', () => {
+      if (cb.checked) { excludedSymbols.delete(name); div.classList.remove('excluded'); }
+      else { excludedSymbols.add(name); div.classList.add('excluded'); }
+      reconcileClientsAfterSymbolChange();
+      updateCleanHint();
+    });
+    container.appendChild(div);
+  });
+}
+
+// Recompute each client's remaining volume given current pair exclusions.
+// - A client that still has volume but was only auto-excluded (not manually) gets re-included.
+// - A client whose remaining volume drops to zero gets auto-excluded, unless the user manually
+//   excluded/included it themselves (manual choices are never overridden by this).
+function reconcileClientsAfterSymbolChange(){
+  Object.keys(CLIENT_SYMBOL_VOL).forEach(name => {
+    const includedVol = clientIncludedVolume(name);
+    const isExcluded = excludedClients.has(name);
+    if (includedVol === 0 && !isExcluded) {
+      excludedClients.add(name);
+      autoExcludedClients.add(name);
+    } else if (includedVol > 0 && autoExcludedClients.has(name)) {
+      excludedClients.delete(name);
+      autoExcludedClients.delete(name);
+    }
+  });
+  refreshClientListDisplay();
+}
+
+function clientIncludedVolume(name){
+  const bySymbol = CLIENT_SYMBOL_VOL[name] || {};
+  let vol = 0;
+  Object.entries(bySymbol).forEach(([sym, v]) => { if (!excludedSymbols.has(sym)) vol += v; });
+  return vol;
+}
+
+function refreshClientListDisplay(){
+  document.querySelectorAll('#clientList .list-item').forEach(el => {
+    const name = el.dataset.name;
+    const vol = clientIncludedVolume(name);
+    const cb = el.querySelector('input');
+    const excluded = excludedClients.has(name);
+    cb.checked = !excluded;
+    el.classList.toggle('excluded', excluded);
+    const autoTag = autoExcludedClients.has(name)
+      ? ' <span style="color:#777;font-size:10px;">(0% left after pair filter)</span>' : '';
+    el.querySelector('.vol').innerHTML = fmtMoney(vol) + autoTag;
+  });
+}
+
+function updateCleanHint(){
+  const autoCount = autoExcludedClients.size;
+  const autoNote = autoCount ? ` (${autoCount} auto-excluded — no volume left after pair filters)` : '';
+  document.getElementById('cleanHint').textContent =
+    `${excludedClients.size} counterparties excluded${autoNote}, ${excludedSymbols.size} pairs excluded.`;
+}
+
+function filterListBox(searchId, listId){
+  const q = document.getElementById(searchId).value.toLowerCase();
+  document.querySelectorAll(`#${listId} .list-item`).forEach(el => {
+    el.style.display = el.dataset.name.toLowerCase().includes(q) ? 'flex' : 'none';
+  });
+}
+document.getElementById('clientSearch').addEventListener('input', () => filterListBox('clientSearch','clientList'));
+document.getElementById('symbolSearch').addEventListener('input', () => filterListBox('symbolSearch','symbolList'));
+
+document.getElementById('clientAll').onclick = () => {
+  excludedClients.clear();
+  autoExcludedClients.clear();
+  refreshClientListDisplay();
+  updateCleanHint();
+};
+document.getElementById('clientNone').onclick = () => {
+  Object.keys(CLIENT_SYMBOL_VOL).forEach(name => excludedClients.add(name));
+  autoExcludedClients.clear(); // manual bulk action, not an auto-derived state
+  refreshClientListDisplay();
+  updateCleanHint();
+};
+document.getElementById('symbolAll').onclick = () => {
+  excludedSymbols.clear();
+  document.querySelectorAll('#symbolList .list-item').forEach(el => {
+    el.classList.remove('excluded');
+    el.querySelector('input').checked = true;
+  });
+  reconcileClientsAfterSymbolChange();
+  updateCleanHint();
+};
+document.getElementById('symbolNone').onclick = () => {
+  document.querySelectorAll('#symbolList .list-item').forEach(el => {
+    excludedSymbols.add(el.dataset.name);
+    el.classList.add('excluded');
+    el.querySelector('input').checked = false;
+  });
+  reconcileClientsAfterSymbolChange();
+  updateCleanHint();
+};
+
+document.getElementById('applyBtn').onclick = rebuild;
+document.getElementById('rebuildBtn').onclick = rebuild;
+
+function getWeekBuckets(maxDate, numWeeks){
+  const end = new Date(maxDate.getTime());
+  end.setUTCHours(0,0,0,0);
+  end.setUTCDate(end.getUTCDate() + 1);
+  const buckets = [];
+  for (let i = 0; i < numWeeks; i++){
+    const wEnd = new Date(end.getTime() - i*7*86400000);
+    const wStart = new Date(wEnd.getTime() - 7*86400000);
+    buckets.push({start:wStart, end:wEnd});
+  }
+  buckets.reverse();
+  return buckets.map((b,i) => ({...b, label:`W${i+1}`}));
+}
+
+function rebuild(){
+  if (RAW_ROWS.length === 0) return;
+  const numWeeks = Math.max(2, Math.min(26, parseInt(document.getElementById('numWeeks').value) || 10));
+
+  const filtered = RAW_ROWS.filter(r => !excludedClients.has(r.client_name) && !excludedSymbols.has(r.symbol));
+
+  let maxTs = 0;
+  filtered.forEach(r => { const t = new Date(r.timestamp).getTime(); if (!isNaN(t) && t > maxTs) maxTs = t; });
+  const buckets = getWeekBuckets(new Date(maxTs), numWeeks);
+
+  const byClient = {};
+  filtered.forEach(r => {
+    const ts = new Date(r.timestamp).getTime();
+    if (isNaN(ts)) return;
+    const vol = usdVolume(r);
+    if (isNaN(vol)) return;
+    let idx = -1;
+    for (let i=0;i<buckets.length;i++){
+      if (ts >= buckets[i].start.getTime() && ts < buckets[i].end.getTime()){ idx = i; break; }
+    }
+    if (idx === -1) return;
+    if (!byClient[r.client_name]) byClient[r.client_name] = new Array(numWeeks).fill(0);
+    byClient[r.client_name][idx] += vol;
+  });
+
+  const rows = Object.entries(byClient).map(([client, weekVols]) => {
+    const total = weekVols.reduce((a,b)=>a+b,0);
+    const current = weekVols[weekVols.length-1];
+    // MA4 = average of the 4 weeks BEFORE the current week (excludes current, so the
+    // comparison isn't diluted by the thing it's being compared against).
+    const prior4 = weekVols.slice(-5, -1);
+    const ma4 = prior4.length ? prior4.reduce((a,b)=>a+b,0) / prior4.length : null;
+    const vsMaAbs = ma4 !== null ? current - ma4 : null;
+    const vsMaPct = (ma4 !== null && ma4 !== 0) ? vsMaAbs/ma4 : null;
+    return {client, weekVols, total, ma4, current, vsMaAbs, vsMaPct};
+  });
+
+  currentResult = {
+    labels: buckets.map(b=>b.label),
+    dateRanges: buckets.map(b=>fmtRange(b)),
+    buckets: buckets,
+    rows
+  };
+  sortKey = 'total'; sortDir = -1;
+  renderTable();
+  renderChart();
+  document.getElementById('exportPdfBtn').disabled = false;
+}
+
+function fmtRange(b){
+  const s = b.start.toISOString().slice(5,10);
+  const e = new Date(b.end.getTime()-86400000).toISOString().slice(5,10);
+  return `${s}~${e}`;
+}
+
+function sortRows(rows){
+  const arr = [...rows];
+  arr.sort((a,b) => {
+    let av, bv;
+    if (sortKey === 'client') { av = a.client; bv = b.client; return sortDir * av.localeCompare(bv); }
+    if (sortKey.startsWith('w')) {
+      const idx = parseInt(sortKey.slice(1));
+      av = a.weekVols[idx]; bv = b.weekVols[idx];
+    } else {
+      av = a[sortKey]; bv = b[sortKey];
+    }
+    av = av === null || isNaN(av) ? -Infinity : av;
+    bv = bv === null || isNaN(bv) ? -Infinity : bv;
+    return sortDir * (av - bv);
+  });
+  return arr;
+}
+
+function renderTable(){
+  if (!currentResult) return;
+  document.getElementById('tablePanel').style.display = 'block';
+  const { labels, dateRanges, rows } = currentResult;
+  const q = document.getElementById('tableSearch').value.toLowerCase();
+  const visibleRows = sortRows(rows.filter(r => r.client.toLowerCase().includes(q)));
+
+  let html = '<thead><tr>';
+  html += `<th class="client-col" data-key="client">Client</th>`;
+  labels.forEach((l,i) => { html += `<th data-key="w${i}">${l}<br><span style="font-size:9px;color:var(--text-dim);">${dateRanges[i]}</span></th>`; });
+  html += `<th data-key="total">Total</th>`;
+  html += `<th data-key="ma4">Prior 4-Wk Avg</th>`;
+  html += `<th data-key="vsMaAbs">Cur vs Avg $</th>`;
+  html += `<th data-key="vsMaPct">Cur vs Avg %</th>`;
+  html += '</tr></thead><tbody>';
+
+  let colTotals = new Array(labels.length).fill(0);
+  visibleRows.forEach(r => {
+    html += '<tr>';
+    html += `<td class="client-col">${r.client}</td>`;
+    r.weekVols.forEach((v,i) => {
+      colTotals[i]+=v;
+      html += `<td class="week-cell" data-client="${escapeAttr(r.client)}" data-week="${i}">${fmtMoney(v)}</td>`;
+    });
+    html += `<td>${fmtMoney(r.total)}</td>`;
+    html += `<td>${fmtMoney(r.ma4)}</td>`;
+    html += `<td>${fmtSignedMoney(r.vsMaAbs)}</td>`;
+    html += `<td>${fmtPct(r.vsMaPct)}</td>`;
+    html += '</tr>';
+  });
+
+  html += `<tr class="total-row"><td class="client-col">TOTAL (${visibleRows.length})</td>`;
+  colTotals.forEach(v => { html += `<td>${fmtMoney(v)}</td>`; });
+  const grandTotal = colTotals.reduce((a,b)=>a+b,0);
+  const priorTotals = colTotals.slice(-5, -1);
+  const grandMa4 = priorTotals.length ? priorTotals.reduce((a,b)=>a+b,0)/priorTotals.length : null;
+  const grandCurrent = colTotals[colTotals.length-1];
+  const grandVsMaAbs = grandMa4 !== null ? grandCurrent - grandMa4 : null;
+  const grandVsMaPct = (grandMa4 !== null && grandMa4 !== 0) ? grandVsMaAbs/grandMa4 : null;
+  html += `<td>${fmtMoney(grandTotal)}</td><td>${fmtMoney(grandMa4)}</td>`;
+  html += `<td>${fmtSignedMoney(grandVsMaAbs)}</td>`;
+  html += `<td>${fmtPct(grandVsMaPct)}</td></tr>`;
+  html += '</tbody>';
+
+  document.getElementById('dataTable').innerHTML = html;
+  document.querySelectorAll('#dataTable th').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.key;
+      if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = -1; }
+      renderTable();
+    });
+  });
+  document.querySelectorAll('#dataTable td.week-cell').forEach(td => {
+    td.addEventListener('click', () => {
+      showDrillDown(td.dataset.client, parseInt(td.dataset.week));
+    });
+  });
+}
+document.getElementById('tableSearch').addEventListener('input', renderTable);
+
+function escapeAttr(s){
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+
+function showDrillDown(client, weekIdx){
+  const bucket = currentResult.buckets[weekIdx];
+  const trades = RAW_ROWS.filter(r => {
+    if (r.client_name !== client) return false;
+    if (excludedSymbols.has(r.symbol)) return false;
+    const ts = new Date(r.timestamp).getTime();
+    return !isNaN(ts) && ts >= bucket.start.getTime() && ts < bucket.end.getTime();
+  }).map(r => ({ raw: r, ts: new Date(r.timestamp), usd: usdVolume(r) }))
+    .sort((a,b) => b.ts - a.ts);
+
+  const total = trades.reduce((s,t) => s + (isNaN(t.usd) ? 0 : t.usd), 0);
+  document.getElementById('drillTitle').textContent =
+    `${client} — ${bucket.label} (${fmtRange(bucket)}) — ${trades.length} trade${trades.length===1?'':'s'}, ${fmtMoneyPlain(total)} total`;
+
+  let html = '<thead><tr><th>Time (UTC)</th><th>Symbol</th><th>Side</th><th>Price</th><th>Quantity</th><th>Amount</th><th>Ccy</th><th>USD vol</th></tr></thead><tbody>';
+  if (trades.length === 0) {
+    html += '<tr><td colspan="8" style="color:var(--text-dim);">No trades in this window (they may have been removed by a pair exclusion).</td></tr>';
+  }
+  trades.forEach(t => {
+    const r = t.raw;
+    html += `<tr>
+      <td>${t.ts.toISOString().slice(0,19).replace('T',' ')}</td>
+      <td>${r.symbol || '-'}</td>
+      <td>${r.side || '-'}</td>
+      <td>${fmtNumPlain(parseFloat(r.price))}</td>
+      <td>${fmtNumPlain(parseFloat(r.quantity))}</td>
+      <td>${fmtNumPlain(parseFloat(r.amount))}</td>
+      <td>${r.amount_currency || '-'}</td>
+      <td>${fmtMoneyPlain(t.usd)}</td>
+    </tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('drillTable').innerHTML = html;
+  document.getElementById('drillModal').style.display = 'flex';
+}
+
+document.getElementById('drillClose').onclick = () => {
+  document.getElementById('drillModal').style.display = 'none';
+};
+document.getElementById('drillModal').addEventListener('click', (e) => {
+  if (e.target.id === 'drillModal') document.getElementById('drillModal').style.display = 'none';
+});
+
+function renderChart(){
+  if (!currentResult) return;
+  document.getElementById('chartPanel').style.display = 'block';
+  const { labels, rows } = currentResult;
+  const top25 = [...rows].sort((a,b)=>b.total-a.total).slice(0,25);
+  const names = top25.map(r=>r.client);
+  const colorFor = {};
+  names.forEach((n,i) => colorFor[n] = COVE[i % COVE.length]);
+
+  if (chartActive.size === 0 || ![...chartActive].some(n=>names.includes(n))) {
+    chartActive = new Set(names.slice(0,8));
+  }
+
+  function buildDatasets(){
+    return names.filter(n=>chartActive.has(n)).map(n => {
+      const r = top25.find(x=>x.client===n);
+      return {
+        label: n,
+        data: r.weekVols.map(v => logScale ? (v===0?null:v) : v),
+        borderColor: colorFor[n],
+        backgroundColor: colorFor[n],
+        borderWidth: 2,
+        pointRadius: 3,
+        tension: 0.15,
+        spanGaps: true
+      };
+    });
+  }
+
+  const ctx = document.getElementById('chart');
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: buildDatasets() },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'nearest', intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{ callbacks:{ label: item => item.dataset.label + ': $' + Math.round(item.raw).toLocaleString() } }
+      },
+      scales:{
+        y:{
+          type: logScale ? 'logarithmic' : 'linear',
+          ticks:{ color:'#9a9a9a', callback: v => '$'+(v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v) },
+          grid:{ color:'#333' }
+        },
+        x:{ ticks:{ color:'#9a9a9a' }, grid:{ display:false } }
+      }
+    }
+  });
+
+  renderLegend(names, colorFor);
+}
+
+function renderLegend(names, colorFor){
+  const el = document.getElementById('legend');
+  el.innerHTML = '';
+  names.forEach(n => {
+    const isOn = chartActive.has(n);
+    const pill = document.createElement('span');
+    pill.className = 'pill';
+    pill.style.borderColor = isOn ? colorFor[n] : '#333';
+    pill.style.color = isOn ? colorFor[n] : '#666';
+    pill.innerHTML = `<span class="swatch" style="background:${isOn?colorFor[n]:'#444'}"></span>${n}`;
+    pill.onclick = () => {
+      if (chartActive.has(n)) chartActive.delete(n); else chartActive.add(n);
+      renderChart();
+    };
+    el.appendChild(pill);
+  });
+}
+
+document.getElementById('btnLinear').onclick = () => {
+  logScale = false;
+  document.getElementById('btnLinear').classList.add('active');
+  document.getElementById('btnLog').classList.remove('active');
+  renderChart();
+};
+document.getElementById('btnLog').onclick = () => {
+  logScale = true;
+  document.getElementById('btnLog').classList.add('active');
+  document.getElementById('btnLinear').classList.remove('active');
+  renderChart();
+};
+
+document.getElementById('exportPdfBtn').onclick = exportPDF;
+
+async function exportPDF(){
+  if (!currentResult) return;
+  const btn = document.getElementById('exportPdfBtn');
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Building PDF...';
+  btn.disabled = true;
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const today = new Date().toISOString().slice(0,10);
+
+    doc.setFontSize(16);
+    doc.setTextColor(20,20,20);
+    doc.text('Client volume tracker', 40, 40);
+    doc.setFontSize(9);
+    doc.setTextColor(110,110,110);
+    doc.text(
+      `Generated ${today}  |  ${currentResult.labels.length} weeks (${currentResult.dateRanges[0]} to ${currentResult.dateRanges[currentResult.dateRanges.length-1]})  |  ` +
+      `${excludedClients.size} counterparties excluded, ${excludedSymbols.size} pairs excluded`,
+      40, 56
+    );
+
+    // Chart snapshot
+    const chartEl = document.getElementById('chartPanel');
+    const canvas = await html2canvas(chartEl, { backgroundColor: '#1c1c1c', scale: 2 });
+    const imgData = canvas.toDataURL('image/png');
+    const imgProps = doc.getImageProperties(imgData);
+    const imgWidth = pageWidth - 80;
+    const imgHeight = Math.min(imgProps.height * imgWidth / imgProps.width, doc.internal.pageSize.getHeight() - 100);
+    doc.addImage(imgData, 'PNG', 40, 72, imgWidth, imgHeight);
+
+    // Table page(s)
+    doc.addPage();
+    const q = document.getElementById('tableSearch').value.toLowerCase();
+    const visibleRows = sortRows(currentResult.rows.filter(r => r.client.toLowerCase().includes(q)));
+    const head = [['Client', ...currentResult.labels, 'Total', 'Prior 4-Wk Avg', 'Cur vs Avg $', 'Cur vs Avg %']];
+    const body = visibleRows.map(r => [
+      r.client,
+      ...r.weekVols.map(v => fmtMoneyPlain(v)),
+      fmtMoneyPlain(r.total),
+      fmtMoneyPlain(r.ma4),
+      fmtSignedMoneyPlain(r.vsMaAbs),
+      fmtPctPlain(r.vsMaPct)
+    ]);
+    doc.autoTable({
+      head, body,
+      startY: 40,
+      styles: { fontSize: 7, cellPadding: 3 },
+      headStyles: { fillColor: [255,153,0], textColor: [30,30,30], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245,245,245] },
+      margin: { left: 20, right: 20 }
+    });
+
+    doc.save(`client_volume_tracker_${today}.pdf`);
+  } catch (err) {
+    alert('PDF export failed: ' + err.message);
+  } finally {
+    btn.textContent = originalLabel;
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
