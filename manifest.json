@@ -1,0 +1,26 @@
+[
+  {
+    "file": "funding_rate_analyzer.html",
+    "tag": "Rates",
+    "name": "Funding Rate Analyzer",
+    "description": "Average funding rate across multiple time frames (1/2/3/6/12-month annualized)."
+  },
+  {
+    "file": "lp_forward_model.html",
+    "tag": "Pricing",
+    "name": "LP Forward Model",
+    "description": "Prices a forward contract from spot, rate, and time-to-expiry inputs."
+  },
+  {
+    "file": "portfolio_terminal.html",
+    "tag": "Portfolio",
+    "name": "Portfolio Terminal",
+    "description": "Interface for tracking open positions and relevant position-level information."
+  },
+  {
+    "file": "Client_Volume_Tracker.html",
+    "tag": "Counterparty",
+    "name": "Client Volume Tracker",
+    "description": "Monitors counterparty traded volume on a weekly basis."
+  }
+]
