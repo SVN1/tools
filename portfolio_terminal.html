@@ -1106,92 +1106,122 @@ let _newsCache=[];
 async function fetchNews(){
   const el=document.getElementById('newsFeed');
   const st=document.getElementById('newsStatus');
-  const syms=[...new Set(portfolio.map(p=>p.symbol.toUpperCase()))];
+  const syms=[...new Set(portfolio.map(p=>p.symbol.toUpperCase()).filter(s=>s!=='USD'))];
   if(!syms.length){el.innerHTML='<div style="padding:12px;font-size:10px;color:var(--mu)">Add positions to see relevant news</div>';return;}
   if(_newsCache.length){renderNews(_newsCache,syms);return;}
-  el.innerHTML='<div style="padding:12px;font-size:10px;color:var(--mu)"><span class="spin">◌</span> Fetching news...</div>';
+  el.innerHTML='<div style="padding:12px;font-size:10px;color:var(--mu)"><span class="spin">◌</span> Fetching news for '+syms.join(', ')+'...</div>';
   st.innerHTML='<span class="spin">◌</span>';
 
-  // Helper: parse RSS XML into items array
-  function parseRSS(xml,source){
-    const out=[];
-    [...xml.querySelectorAll('item,entry')].forEach(e=>{
-      const title=(e.querySelector('title')?.textContent||'').trim();
-      const link=e.querySelector('link')?.textContent?.trim()||e.querySelector('link')?.getAttribute('href')||'';
-      const pub=e.querySelector('pubDate,published,updated')?.textContent||'';
-      const ts=pub?new Date(pub).getTime():Date.now();
-      const coins=syms.filter(s=>title.toUpperCase().includes(s));
-      if(title&&link)out.push({title,url:link,source,ts,coins,sentiment:'neu'});
-    });
-    return out;
-  }
+  // CoinGecko news endpoint — fetches latest news, filter client-side by coin name/symbol
+  // Also use coin full names for better matching
+  const coinNames={BTC:'bitcoin',ETH:'ethereum',SOL:'solana',BNB:'binance',XRP:'ripple',ADA:'cardano',AVAX:'avalanche',DOT:'polkadot',MATIC:'polygon',LINK:'chainlink',DOGE:'dogecoin',LTC:'litecoin',UNI:'uniswap',ATOM:'cosmos',NEAR:'near',AAVE:'aave',MKR:'maker',INJ:'injective',ARB:'arbitrum',OP:'optimism',APT:'aptos',SUI:'sui',TON:'toncoin',HYPE:'hyperliquid',TAO:'bittensor',ENA:'ethena'};
 
-  // Fetch an RSS feed — try allorigins, fallback to rss2json
-  async function rss(url,source){
-    // Try allorigins
-    try{
-      const r=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url),{signal:AbortSignal.timeout(9000)});
-      if(r.ok){const d=await r.json();if(d.contents){const xml=new DOMParser().parseFromString(d.contents,'text/xml');const items=parseRSS(xml,source);if(items.length)return items;}}
-    }catch(e){}
-    // Fallback: rss2json
-    try{
-      const r=await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(url),{signal:AbortSignal.timeout(9000)});
-      if(r.ok){const d=await r.json();if(d.items?.length)return d.items.map(i=>({title:(i.title||'').trim(),url:i.link||'',source,ts:i.pubDate?new Date(i.pubDate).getTime():Date.now(),coins:syms.filter(s=>(i.title||'').toUpperCase().includes(s)),sentiment:'neu'})).filter(i=>i.title&&i.url);}
-    }catch(e){}
-    throw new Error('failed');
-  }
-
-  // Crypto RSS feeds
-  const feeds=[
-    ['https://cointelegraph.com/rss','CoinTelegraph'],
-    ['https://decrypt.co/feed','Decrypt'],
-    ['https://www.coindesk.com/arc/outboundfeeds/rss/','CoinDesk'],
-    ['https://bitcoinmagazine.com/.rss/full/','Bitcoin Magazine'],
-  ];
+  // Build search terms per sym: symbol + full name
+  const symTerms={};
+  syms.forEach(s=>{
+    symTerms[s]=[s.toLowerCase()];
+    if(coinNames[s])symTerms[s].push(coinNames[s]);
+  });
 
   let items=[];
-  for(const [url,src] of feeds){
-    try{
-      const got=await rss(url,src);
-      items=[...items,...got];
-      console.log('[news]',src,got.length,'articles');
-      if(items.length>=20)break;
-    }catch(e){console.warn('[news]',src,'failed:',e.message);}
+
+  // Strategy 1: CoinGecko /news (free, no key, returns recent crypto news)
+  try{
+    const r=await fetch('https://api.coingecko.com/api/v3/news',{signal:AbortSignal.timeout(10000)});
+    if(r.ok){
+      const d=await r.json();
+      const articles=(d.data||d||[]);
+      articles.forEach(a=>{
+        const text=((a.title||'')+(a.description||'')).toLowerCase();
+        const matchedCoins=syms.filter(s=>symTerms[s].some(term=>text.includes(term)));
+        if(matchedCoins.length){
+          items.push({
+            title:(a.title||'').trim(),
+            url:a.url||a.news_site_url||'',
+            source:a.news_site||a.source||'CoinGecko News',
+            ts:a.created_at?new Date(a.created_at).getTime():Date.now(),
+            coins:matchedCoins,
+            thumb:a.thumb_2x||a.thumb||null
+          });
+        }
+      });
+    }
+  }catch(e){console.warn('[news] CoinGecko failed:',e.message);}
+
+  // Strategy 2: per-coin CoinGecko status updates (community posts)
+  if(items.length<8){
+    const cgIds=syms.map(s=>CGIDS[s]||coinNames[s]||s.toLowerCase()).filter(Boolean);
+    for(const [sym,cgId] of syms.map((s,i)=>[s,cgIds[i]])){
+      try{
+        const r=await fetch(`https://api.coingecko.com/api/v3/coins/${cgId}/status_updates?per_page=3`,{signal:AbortSignal.timeout(7000)});
+        if(r.ok){
+          const d=await r.json();
+          (d.status_updates||[]).forEach(u=>{
+            if(!u.description)return;
+            items.push({title:u.description.slice(0,120)+(u.description.length>120?'…':''),url:`https://www.coingecko.com/en/coins/${cgId}`,source:'CoinGecko · '+sym,ts:new Date(u.created_at).getTime(),coins:[sym]});
+          });
+        }
+      }catch(e){}
+    }
   }
 
+  // Strategy 3: RSS feeds filtered strictly to held coins
+  if(items.length<5){
+    const feeds=[
+      ['https://cointelegraph.com/rss','CoinTelegraph'],
+      ['https://decrypt.co/feed','Decrypt'],
+      ['https://www.coindesk.com/arc/outboundfeeds/rss/','CoinDesk'],
+    ];
+    async function tryRSS(url,source){
+      try{
+        const r=await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(url),{signal:AbortSignal.timeout(8000)});
+        if(!r.ok)return[];
+        const d=await r.json();
+        return(d.items||[]).map(i=>{
+          const text=((i.title||'')+(i.description||'')).toLowerCase();
+          const matchedCoins=syms.filter(s=>symTerms[s].some(term=>text.includes(term)));
+          if(!matchedCoins.length)return null;
+          return{title:(i.title||'').trim(),url:i.link||'',source,ts:i.pubDate?new Date(i.pubDate).getTime():Date.now(),coins:matchedCoins};
+        }).filter(Boolean);
+      }catch(e){return[];}
+    }
+    for(const [url,src] of feeds){
+      const got=await tryRSS(url,src);
+      items=[...items,...got];
+      if(items.length>=15)break;
+    }
+  }
+
+  // Deduplicate by title, sort by recency
+  const seen=new Set();
+  items=items.filter(i=>{
+    if(!i.title||!i.url)return false;
+    if(seen.has(i.title))return false;
+    seen.add(i.title);return true;
+  });
+  items.sort((a,b)=>b.ts-a.ts);
+
   if(items.length){
-    // deduplicate by title
-    const seen=new Set();
-    items=items.filter(i=>{if(seen.has(i.title))return false;seen.add(i.title);return true;});
     _newsCache=items;
     renderNews(items,syms);
     st.innerHTML='<span style="color:var(--g)">●</span> '+items.length+' stories';
   } else {
-    el.innerHTML='<div style="padding:12px;font-size:10px;color:var(--mu)">Could not load news — RSS proxies may be down or blocked. Try clicking NEWS FEED again in a moment.</div>';
-    st.innerHTML='<span style="color:var(--r)">●</span> failed';
+    el.innerHTML=`<div style="padding:12px;font-size:10px;color:var(--mu)">No news found for your positions (${syms.join(', ')}). Try again in a moment.</div>`;
+    st.innerHTML='<span style="color:var(--r)">●</span> none';
   }
 }
 
 function renderNews(items,syms){
   const el=document.getElementById('newsFeed');
-  // Sort: pinned coins first, then by time
-  const sorted=[...items].sort((a,b)=>{
-    const aMatch=a.coins&&a.coins.some(c=>syms.includes(c))?1:0;
-    const bMatch=b.coins&&b.coins.some(c=>syms.includes(c))?1:0;
-    if(bMatch!==aMatch)return bMatch-aMatch;
-    return b.ts-a.ts;
-  });
-  el.innerHTML=sorted.map(n=>{
+  el.innerHTML=items.map(n=>{
     const ago=timeAgo(n.ts);
     const matchCoins=(n.coins||[]).filter(c=>syms.includes(c));
-    const sentColor=n.sentiment==='pos'?'var(--g)':n.sentiment==='neg'?'var(--r)':'var(--mu)';
-    const sentDot=n.sentiment==='pos'?'▲':n.sentiment==='neg'?'▼':'';
+    const coinColors={BTC:'var(--or)',ETH:'#627EEA',SOL:'#9945FF',LINK:'#2A5ADA',AAVE:'#B6509E'};
     return`<div class="news-row" onclick="window.open('${n.url}','_blank')">
       <div class="news-meta">
         <span class="news-src">${n.source}</span>
-        ${matchCoins.map(c=>`<span class="news-coin" style="color:${c==='BTC'?'var(--or)':'#efefef'}">${c}</span>`).join('') }
+        ${matchCoins.map(c=>`<span class="news-coin" style="color:${coinColors[c]||'var(--a)'}">${c}</span>`).join('')}
         <span class="news-time">${ago}</span>
-        ${sentDot?`<span style="color:${sentColor};font-size:9px">${sentDot}</span>`:''}
       </div>
       <div class="news-title">${n.title}</div>
     </div>`;
