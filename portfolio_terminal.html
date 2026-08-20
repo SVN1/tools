@@ -1096,7 +1096,7 @@ window.toggleBottom=function(which){
   document.getElementById('apanel-eq').style.display=which==='eq'?'flex':'none';
   document.getElementById('apanel-news').style.display=which==='news'?'flex':'none';
   if(which==='eq')rebuildEqChart();
-  if(which==='news')fetchNews();
+  if(which==='news'){_newsCache=[];fetchNews();}
 };
 
 // ═══ NEWS FEED ═══
@@ -1126,23 +1126,27 @@ async function fetchNews(){
     return out;
   }
 
-  // Fetch an RSS feed via allorigins proxy
+  // Fetch an RSS feed — try allorigins, fallback to rss2json
   async function rss(url,source){
-    const proxy='https://api.allorigins.win/get?url='+encodeURIComponent(url);
-    const r=await fetch(proxy,{signal:AbortSignal.timeout(12000)});
-    if(!r.ok)throw new Error('proxy error '+r.status);
-    const d=await r.json();
-    if(!d.contents)throw new Error('empty response');
-    const parser=new DOMParser();
-    const xml=parser.parseFromString(d.contents,'text/xml');
-    return parseRSS(xml,source);
+    // Try allorigins
+    try{
+      const r=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url),{signal:AbortSignal.timeout(9000)});
+      if(r.ok){const d=await r.json();if(d.contents){const xml=new DOMParser().parseFromString(d.contents,'text/xml');const items=parseRSS(xml,source);if(items.length)return items;}}
+    }catch(e){}
+    // Fallback: rss2json
+    try{
+      const r=await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(url),{signal:AbortSignal.timeout(9000)});
+      if(r.ok){const d=await r.json();if(d.items?.length)return d.items.map(i=>({title:(i.title||'').trim(),url:i.link||'',source,ts:i.pubDate?new Date(i.pubDate).getTime():Date.now(),coins:syms.filter(s=>(i.title||'').toUpperCase().includes(s)),sentiment:'neu'})).filter(i=>i.title&&i.url);}
+    }catch(e){}
+    throw new Error('failed');
   }
 
-  // Three crypto RSS feeds that work reliably
+  // Crypto RSS feeds
   const feeds=[
-    ['https://feeds.feedburner.com/CoinDesk','CoinDesk'],
     ['https://cointelegraph.com/rss','CoinTelegraph'],
     ['https://decrypt.co/feed','Decrypt'],
+    ['https://www.coindesk.com/arc/outboundfeeds/rss/','CoinDesk'],
+    ['https://bitcoinmagazine.com/.rss/full/','Bitcoin Magazine'],
   ];
 
   let items=[];
@@ -1163,7 +1167,7 @@ async function fetchNews(){
     renderNews(items,syms);
     st.innerHTML='<span style="color:var(--g)">●</span> '+items.length+' stories';
   } else {
-    el.innerHTML='<div style="padding:12px;font-size:10px;color:var(--mu)">Could not load news — check network connection.</div>';
+    el.innerHTML='<div style="padding:12px;font-size:10px;color:var(--mu)">Could not load news — RSS proxies may be down or blocked. Try clicking NEWS FEED again in a moment.</div>';
     st.innerHTML='<span style="color:var(--r)">●</span> failed';
   }
 }
