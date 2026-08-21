@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PORTFOLIO TERMINAL v4.3</title>
+<title>PORTFOLIO TERMINAL v4.1</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -11,13 +11,11 @@
 :root{
   --bg0:#0c0c0c;--bg1:#121212;--bg2:#181818;--bg3:#202020;--bg4:#282828;
   --or:#ff6200;--or2:#b84500;--org:rgba(255,98,0,.13);--orl:rgba(255,98,0,.32);
-  --g:#00c832;--r:#ff1a2e;--a:#ffaa00;--cy:#00c8f0;
+  --g:#00e639;--r:#ff1a2e;--a:#ffaa00;--cy:#00c8f0;
   --w:#efefef;--mu:#909090;--mu2:#404040;--bd:#252525;--bdh:#383838;
   --mono:'IBM Plex Mono','Courier New',monospace;
   --panel-h:220px;
-  --fs:13px;--fs-sm:11px;--fs-xs:10px;--fs-xxs:9px;--fs-cell:12px;
 }
-
 /* ── LIGHT THEME ── */
 [data-theme="light"]{
   --bg0:#f0ede8;--bg1:#f7f5f2;--bg2:#ede9e3;--bg3:#e4e0d9;--bg4:#d9d4cc;
@@ -26,17 +24,14 @@
   --w:#1a1814;--mu:#6b6560;--mu2:#b8b2aa;--bd:#ccc8c0;--bdh:#aaa49a;
 }
 [data-theme="light"] body::after{display:none;}
-[data-theme="light"] .top{background:var(--or);border-bottom:2px solid var(--or2);}
-[data-theme="light"] .brand,.tclock{color:#fff;}
-[data-theme="light"] .main-tab.on{color:#fff;}
-[data-theme="light"] tbody tr:hover td{background:#e8e4dc;}
-[data-theme="light"] .tj-table tr:hover td{background:#e8e4dc;}
-[data-theme="light"] .news-row:hover{background:#e8e4dc;}
+[data-theme="light"] tbody tr:hover td{background:#e4dfd8;}
+[data-theme="light"] .tj-table tr:hover td{background:#e4dfd8;}
+[data-theme="light"] .news-row:hover{background:#e4dfd8;}
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow:hidden;}
 html{color-scheme:dark;}
 [data-theme="light"]{color-scheme:light;}
-body{background:var(--bg0);color:var(--w);font-family:var(--mono);font-size:var(--fs);line-height:1.4;}
+body{background:var(--bg0);color:var(--w);font-family:var(--mono);font-size:13px;line-height:1.4;}
 body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.022) 2px,rgba(0,0,0,.022) 4px);pointer-events:none;z-index:9999;}
 
 /* ── TOP BAR ── */
@@ -84,9 +79,9 @@ th{padding:4px 7px;text-align:right;font-size:10px;font-weight:600;color:var(--o
 th:first-child{text-align:left;}th:last-child{border-right:none;}
 tbody tr{border-bottom:1px solid var(--bd);transition:background .08s;}
 tbody tr:hover{background:var(--bg2);}
-td{font-size:var(--fs-cell);}
+td{padding:5px 7px;text-align:right;white-space:nowrap;border-right:1px solid var(--bd);font-size:12px;}
 td:first-child{text-align:left;}td:last-child{border-right:none;}
-.tkr{font-size:var(--fs-cell);letter-spacing:.04em;}
+.tkr{font-weight:600;font-size:12px;letter-spacing:.04em;}
 .sub{font-size:10px;color:#888;margin-top:1px;}
 .er td{text-align:center;padding:24px;color:#888;font-size:11px;}
 
@@ -114,21 +109,21 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 
 /* lot rows */
 .lotrow{border-bottom:1px solid var(--bd);background:rgba(255,98,0,.03);}
-.lotrow td{font-size:var(--fs-xs);color:#888;border-right:1px solid var(--bd);}
+.lotrow td{padding:3px 7px;font-size:10px;color:#888;border-right:1px solid var(--bd);}
 .lotrow td:first-child{padding-left:22px;text-align:left;}
 .lotrow td:last-child{border-right:none;}
 .xbtn{background:none;border:none;color:var(--mu);font-family:var(--mono);font-size:9px;cursor:pointer;padding:0 2px;}
 .xbtn:hover{color:var(--or);}
 
 /* inline edit */
-.ie{font-size:var(--fs-sm);padding:2px 4px;width:78px;outline:none;}
+.ie{background:var(--bg3);border:1px solid var(--or);color:var(--w);font-family:var(--mono);font-size:11px;padding:2px 4px;width:78px;outline:none;}
 
 /* notes */
 .note-cell{max-width:160px;min-width:80px;}
 .note-text{font-size:10px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:155px;cursor:pointer;padding:1px 3px;}
 .note-text:hover{color:var(--w);}
 .note-text.empty{color:var(--mu2);font-style:italic;}
-.note-input{font-size:var(--fs-xs);padding:2px 5px;width:155px;outline:none;}
+.note-input{background:var(--bg3);border:1px solid var(--or);color:var(--w);font-family:var(--mono);font-size:10px;padding:2px 5px;width:155px;outline:none;}
 
 /* row btns */
 .db{background:none;border:1px solid var(--mu2);color:var(--mu);font-family:var(--mono);font-size:9px;padding:1px 4px;cursor:pointer;transition:all .1s;}
@@ -170,9 +165,9 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 .sbody{padding:8px;overflow-y:auto;flex:1;}
 .sbody::-webkit-scrollbar{width:3px;}
 .sbody::-webkit-scrollbar-thumb{background:var(--bdh);}
-.inp{width:100%;background:var(--bg2);border:1px solid var(--bdh);color:var(--w);font-family:var(--mono);font-size:var(--fs-sm);padding:4px 6px;outline:none;}
+.inp{width:100%;background:var(--bg2);border:1px solid var(--bdh);color:var(--w);font-family:var(--mono);font-size:11px;padding:4px 6px;outline:none;}
 .inp:focus{border-color:var(--or);}
-.lbl{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
+.lbl{font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
 .tbtn{background:var(--or);border:none;color:#000;font-family:var(--mono);font-size:9px;font-weight:600;padding:4px 8px;cursor:pointer;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;}
 .tbtn:hover{background:var(--a);}
 .tbtn.s{background:var(--bg3);color:var(--or);border:1px solid var(--orl);}
@@ -295,14 +290,14 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 .tj-wrap::-webkit-scrollbar-thumb{background:var(--bd);}
 .tj-table{border-collapse:collapse;width:max-content;min-width:100%;}
 .tj-table th{position:sticky;top:0;background:var(--bg2);font-size:9px;color:var(--mu);letter-spacing:.1em;padding:5px 8px;border-right:1px solid var(--bd);border-bottom:1px solid var(--or2);white-space:nowrap;z-index:10;}
-.tj-table td{font-size:var(--fs-xs);padding:4px 7px;border-right:1px solid var(--bd);border-bottom:1px solid var(--bg3);white-space:nowrap;vertical-align:middle;}
+.tj-table td{font-size:10px;padding:4px 7px;border-right:1px solid var(--bd);border-bottom:1px solid var(--bg3);white-space:nowrap;vertical-align:middle;}
 .tj-table tr:hover td{background:var(--bg3);}
 .tj-table tr.tj-open td{background:rgba(255,98,0,.04);}
 .tj-table tr.tj-closed td{opacity:.85;}
-.tj-cell-in{font-size:var(--fs-xs);width:100%;outline:none;padding:0;}
+.tj-cell-in{background:transparent;border:none;color:var(--w);font-family:var(--mono);font-size:10px;width:100%;outline:none;padding:0;}
 .tj-cell-in:focus{color:var(--or);}
 .tj-cell-in::placeholder{color:var(--mu2);}
-.tj-sel{font-size:var(--fs-xs);outline:none;padding:1px 3px;cursor:pointer;}
+.tj-sel{background:var(--bg3);border:1px solid var(--bd);color:var(--w);font-family:var(--mono);font-size:10px;outline:none;padding:1px 3px;cursor:pointer;}
 .tj-sel:focus{border-color:var(--or);}
 .tj-badge{font-size:8px;padding:1px 5px;letter-spacing:.08em;border-radius:0;}
 .tj-badge.LONG{background:rgba(0,230,57,.15);color:var(--g);border:1px solid rgba(0,230,57,.3);}
@@ -322,7 +317,7 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 .tj-link:hover{text-decoration:underline;}
 .tj-ac-wrap{position:relative;display:inline-block;}
 .tj-ac-list{position:absolute;top:100%;left:0;background:var(--bg3);border:1px solid var(--or);z-index:200;min-width:140px;max-height:120px;overflow-y:auto;display:none;}
-.tj-ac-item{font-size:var(--fs-xs);color:var(--w);cursor:pointer;white-space:nowrap;}
+.tj-ac-item{padding:4px 8px;font-size:10px;color:var(--w);cursor:pointer;white-space:nowrap;}
 .tj-ac-item:hover{background:var(--bg4);color:var(--or);}
 
 /* ── DASHBOARD TAB ── */
@@ -360,14 +355,9 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 
 <!-- TOP -->
 <div class="top">
-  <span class="brand">▶ PORTFOLIO TERMINAL <span style="font-size:9px;opacity:.7">v4.3</span></span>
+  <span class="brand">▶ PORTFOLIO TERMINAL <span style="font-size:9px;opacity:.6">v4.4</span></span>
   <div class="top-r">
-    <div style="display:flex;align-items:center;gap:4px">
-      <button onclick="zoomOut()" style="background:rgba(0,0,0,.2);border:none;color:#fff;font-family:var(--mono);font-size:13px;cursor:pointer;width:20px;height:20px;display:flex;align-items:center;justify-content:center;line-height:1" title="Decrease font size">−</button>
-      <span id="zoomLabel" style="font-size:9px;color:rgba(255,255,255,.7);min-width:24px;text-align:center">13</span>
-      <button onclick="zoomIn()" style="background:rgba(0,0,0,.2);border:none;color:#fff;font-family:var(--mono);font-size:13px;cursor:pointer;width:20px;height:20px;display:flex;align-items:center;justify-content:center;line-height:1" title="Increase font size">+</button>
-    </div>
-    <button onclick="toggleTheme()" id="themeBtn" style="background:rgba(0,0,0,.2);border:none;color:#fff;font-family:var(--mono);font-size:9px;cursor:pointer;padding:2px 8px;letter-spacing:.08em" title="Toggle light/dark mode">☀ LIGHT</button>
+    <button onclick="toggleTheme()" id="themeBtn" style="background:rgba(0,0,0,.25);border:none;color:#fff;font-family:var(--mono);font-size:9px;cursor:pointer;padding:2px 8px;letter-spacing:.08em;height:18px;" title="Toggle light/dark mode">☀ LIGHT</button>
     <span class="tclock" id="clock">--:--:--</span>
   </div>
 </div>
@@ -757,6 +747,41 @@ let prices    = {};
 let emas      = {};
 let signals   = {};
 
+// ── MOCK TRADES (demo data — only injected if no trades exist yet) ──
+if(!trades.length){
+  const _mid=()=>'tr_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  trades=[
+    // JANUARY
+    {id:_mid(),coin:'BTC',base:'USDT',status:'CLOSED',direction:'LONG',size:0.15,entry:42800,target:46500,sl:41200,exit:46300,strategy:'Trend Continuation',trigger:'EMA cross + volume surge',setupGrade:'A',dateOpen:'2025-01-06',dateClose:'2025-01-14',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Confident',chart:'',notes:'Clean breakout above Jan range'},
+    {id:_mid(),coin:'ETH',base:'USDT',status:'CLOSED',direction:'LONG',size:2.5,entry:2280,target:2550,sl:2180,exit:2195,strategy:'Range Breakout',trigger:'Support retest + RSI divergence',setupGrade:'B',dateOpen:'2025-01-10',dateClose:'2025-01-13',outcome:'Stop Hit',propShop:'Y',unforcedError:'Y',grade:'C',demon:'FOMO',emotion:'Anxious',chart:'',notes:'Entered too early, waited for confirmation'},
+    {id:_mid(),coin:'SOL',base:'USDT',status:'CLOSED',direction:'SHORT',size:12,entry:185,target:168,sl:192,exit:170,strategy:'Mean Reversion',trigger:'Overbought RSI + supply zone',setupGrade:'A',dateOpen:'2025-01-15',dateClose:'2025-01-19',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Calm',chart:'',notes:'Textbook supply zone rejection'},
+    {id:_mid(),coin:'BTC',base:'USDT',status:'CLOSED',direction:'LONG',size:0.12,entry:43500,target:48000,sl:41800,exit:47800,strategy:'Trend Continuation',trigger:'HTF breakout retest',setupGrade:'A',dateOpen:'2025-01-22',dateClose:'2025-01-30',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Confident',chart:'',notes:''},
+    // FEBRUARY
+    {id:_mid(),coin:'LINK',base:'USDT',status:'CLOSED',direction:'LONG',size:80,entry:14.2,target:17.0,sl:13.1,exit:13.05,strategy:'Structure Breakout',trigger:'Weekly level breakout',setupGrade:'B',dateOpen:'2025-02-03',dateClose:'2025-02-06',outcome:'Stop Hit',propShop:'N',unforcedError:'N',grade:'B',demon:'',emotion:'Neutral',chart:'',notes:'Market wide sell-off, not my fault'},
+    {id:_mid(),coin:'ETH',base:'USDT',status:'CLOSED',direction:'SHORT',size:3,entry:2680,target:2420,sl:2780,exit:2450,strategy:'Mean Reversion',trigger:'Bearish engulf at resistance',setupGrade:'A',dateOpen:'2025-02-10',dateClose:'2025-02-17',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Calm',chart:'',notes:''},
+    {id:_mid(),coin:'AAVE',base:'USDT',status:'CLOSED',direction:'LONG',size:15,entry:98,target:118,sl:91,exit:115,strategy:'Trend Continuation',trigger:'EMA cross + sector rotation',setupGrade:'B',dateOpen:'2025-02-12',dateClose:'2025-02-20',outcome:'In Profit (before target)',propShop:'Y',unforcedError:'N',grade:'B',demon:'',emotion:'Patient',chart:'',notes:'Took profit early, left some on table'},
+    {id:_mid(),coin:'SOL',base:'USDT',status:'CLOSED',direction:'LONG',size:10,entry:172,target:195,sl:163,exit:162,strategy:'Range Breakout',trigger:'Demand zone bounce',setupGrade:'C',dateOpen:'2025-02-24',dateClose:'2025-02-26',outcome:'Stop Hit',propShop:'N',unforcedError:'Y',grade:'D',demon:'Revenge',emotion:'Frustrated',chart:'',notes:'Revenge trade after LINK stop. Should not have taken this.'},
+    // MARCH
+    {id:_mid(),coin:'BTC',base:'USDT',status:'CLOSED',direction:'LONG',size:0.1,entry:56200,target:62000,sl:53800,exit:61500,strategy:'Trend Continuation',trigger:'All-time high breakout',setupGrade:'A',dateOpen:'2025-03-03',dateClose:'2025-03-14',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Confident',chart:'',notes:'ATH breakout, held through volatility'},
+    {id:_mid(),coin:'XRP',base:'USDT',status:'CLOSED',direction:'LONG',size:1200,entry:0.62,target:0.78,sl:0.57,exit:0.575,strategy:'Structure Breakout',trigger:'Pennant breakout',setupGrade:'B',dateOpen:'2025-03-08',dateClose:'2025-03-10',outcome:'Stop Hit',propShop:'N',unforcedError:'N',grade:'B',demon:'',emotion:'Neutral',chart:'',notes:'False breakout'},
+    {id:_mid(),coin:'ETH',base:'USDT',status:'CLOSED',direction:'LONG',size:2,entry:3100,target:3600,sl:2950,exit:3580,strategy:'Trend Continuation',trigger:'BTC led move, ETH lagging',setupGrade:'A',dateOpen:'2025-03-10',dateClose:'2025-03-20',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Calm',chart:'',notes:''},
+    {id:_mid(),coin:'SOL',base:'USDT',status:'CLOSED',direction:'SHORT',size:8,entry:198,target:178,sl:208,exit:182,strategy:'Mean Reversion',trigger:'RSI 80+ daily, key supply',setupGrade:'A',dateOpen:'2025-03-22',dateClose:'2025-03-27',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Calm',chart:'',notes:''},
+    // APRIL
+    {id:_mid(),coin:'BTC',base:'USDT',status:'CLOSED',direction:'SHORT',size:0.08,entry:68500,target:63000,sl:70500,exit:70600,strategy:'Mean Reversion',trigger:'Bearish divergence HTF',setupGrade:'B',dateOpen:'2025-04-01',dateClose:'2025-04-03',outcome:'Stop Hit',propShop:'Y',unforcedError:'Y',grade:'C',demon:'Overconfidence',emotion:'Overconfident',chart:'',notes:'Faded a bull trend. Bad idea.'},
+    {id:_mid(),coin:'LINK',base:'USDT',status:'CLOSED',direction:'LONG',size:100,entry:16.8,target:20.5,sl:15.6,exit:20.2,strategy:'Trend Continuation',trigger:'Sector breakout + EMA alignment',setupGrade:'A',dateOpen:'2025-04-08',dateClose:'2025-04-18',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Confident',chart:'',notes:''},
+    {id:_mid(),coin:'ETH',base:'USDT',status:'CLOSED',direction:'LONG',size:1.5,entry:3250,target:3700,sl:3100,exit:3690,strategy:'Trend Continuation',trigger:'ETH/BTC ratio breakout',setupGrade:'A',dateOpen:'2025-04-12',dateClose:'2025-04-22',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Patient',chart:'',notes:''},
+    // MAY
+    {id:_mid(),coin:'SOL',base:'USDT',status:'CLOSED',direction:'LONG',size:15,entry:165,target:195,sl:154,exit:155,strategy:'Range Breakout',trigger:'Weekly support retest',setupGrade:'B',dateOpen:'2025-05-05',dateClose:'2025-05-08',outcome:'Stop Hit',propShop:'N',unforcedError:'N',grade:'B',demon:'',emotion:'Neutral',chart:'',notes:'Support failed'},
+    {id:_mid(),coin:'BTC',base:'USDT',status:'CLOSED',direction:'LONG',size:0.1,entry:61000,target:68000,sl:58500,exit:67500,strategy:'Trend Continuation',trigger:'Monthly level reclaim',setupGrade:'A',dateOpen:'2025-05-12',dateClose:'2025-05-28',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Confident',chart:'',notes:'Held through the dip around 62k'},
+    {id:_mid(),coin:'AAVE',base:'USDT',status:'CLOSED',direction:'SHORT',size:20,entry:112,target:95,sl:120,exit:96,strategy:'Mean Reversion',trigger:'Distribution pattern + RSI',setupGrade:'B',dateOpen:'2025-05-20',dateClose:'2025-05-29',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'B',demon:'',emotion:'Calm',chart:'',notes:''},
+    // JUNE
+    {id:_mid(),coin:'XRP',base:'USDT',status:'CLOSED',direction:'LONG',size:2000,entry:0.52,target:0.65,sl:0.47,exit:0.46,strategy:'Structure Breakout',trigger:'HTF demand zone',setupGrade:'C',dateOpen:'2025-06-02',dateClose:'2025-06-04',outcome:'Stop Hit',propShop:'N',unforcedError:'Y',grade:'D',demon:'Impatience',emotion:'Bored',chart:'',notes:'Forced a trade on a slow day'},
+    {id:_mid(),coin:'ETH',base:'USDT',status:'CLOSED',direction:'LONG',size:2,entry:3480,target:3900,sl:3300,exit:3870,strategy:'Trend Continuation',trigger:'EMA cross on 4H',setupGrade:'A',dateOpen:'2025-06-10',dateClose:'2025-06-20',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Confident',chart:'',notes:''},
+    // OPEN TRADES
+    {id:_mid(),coin:'BTC',base:'USDT',status:'OPEN',direction:'LONG',size:0.12,entry:67200,target:74000,sl:64800,exit:'',strategy:'Trend Continuation',trigger:'Weekly breakout retest',setupGrade:'A',dateOpen:'2025-06-28',dateClose:'',outcome:'',propShop:'Y',unforcedError:'',grade:'',demon:'',emotion:'Confident',chart:'',notes:'Watching 68.5k as first target'},
+    {id:_mid(),coin:'SOL',base:'USDT',status:'OPEN',direction:'LONG',size:20,entry:148,target:175,sl:139,exit:'',strategy:'Mean Reversion',trigger:'Oversold bounce + demand zone',setupGrade:'B',dateOpen:'2025-07-01',dateClose:'',outcome:'',propShop:'N',unforcedError:'',grade:'',demon:'',emotion:'Patient',chart:'',notes:''},
+  ];
+}
 let pieChart, barChart, eqChart;
 let pnlMode   = 'stacked';
 let editIdx   = null;
@@ -1123,7 +1148,7 @@ window.toggleBottom=function(which){
   document.getElementById('apanel-eq').style.display=which==='eq'?'flex':'none';
   document.getElementById('apanel-news').style.display=which==='news'?'flex':'none';
   if(which==='eq')rebuildEqChart();
-  if(which==='news'){_newsCache=[];fetchNews();}
+  if(which==='news')fetchNews();
 };
 
 // ═══ NEWS FEED ═══
@@ -1133,122 +1158,88 @@ let _newsCache=[];
 async function fetchNews(){
   const el=document.getElementById('newsFeed');
   const st=document.getElementById('newsStatus');
-  const syms=[...new Set(portfolio.map(p=>p.symbol.toUpperCase()).filter(s=>s!=='USD'))];
+  const syms=[...new Set(portfolio.map(p=>p.symbol.toUpperCase()))];
   if(!syms.length){el.innerHTML='<div style="padding:12px;font-size:10px;color:var(--mu)">Add positions to see relevant news</div>';return;}
   if(_newsCache.length){renderNews(_newsCache,syms);return;}
-  el.innerHTML='<div style="padding:12px;font-size:10px;color:var(--mu)"><span class="spin">◌</span> Fetching news for '+syms.join(', ')+'...</div>';
+  el.innerHTML='<div style="padding:12px;font-size:10px;color:var(--mu)"><span class="spin">◌</span> Fetching news...</div>';
   st.innerHTML='<span class="spin">◌</span>';
 
-  // CoinGecko news endpoint — fetches latest news, filter client-side by coin name/symbol
-  // Also use coin full names for better matching
-  const coinNames={BTC:'bitcoin',ETH:'ethereum',SOL:'solana',BNB:'binance',XRP:'ripple',ADA:'cardano',AVAX:'avalanche',DOT:'polkadot',MATIC:'polygon',LINK:'chainlink',DOGE:'dogecoin',LTC:'litecoin',UNI:'uniswap',ATOM:'cosmos',NEAR:'near',AAVE:'aave',MKR:'maker',INJ:'injective',ARB:'arbitrum',OP:'optimism',APT:'aptos',SUI:'sui',TON:'toncoin',HYPE:'hyperliquid',TAO:'bittensor',ENA:'ethena'};
+  // Helper: parse RSS XML into items array
+  function parseRSS(xml,source){
+    const out=[];
+    [...xml.querySelectorAll('item,entry')].forEach(e=>{
+      const title=(e.querySelector('title')?.textContent||'').trim();
+      const link=e.querySelector('link')?.textContent?.trim()||e.querySelector('link')?.getAttribute('href')||'';
+      const pub=e.querySelector('pubDate,published,updated')?.textContent||'';
+      const ts=pub?new Date(pub).getTime():Date.now();
+      const coins=syms.filter(s=>title.toUpperCase().includes(s));
+      if(title&&link)out.push({title,url:link,source,ts,coins,sentiment:'neu'});
+    });
+    return out;
+  }
 
-  // Build search terms per sym: symbol + full name
-  const symTerms={};
-  syms.forEach(s=>{
-    symTerms[s]=[s.toLowerCase()];
-    if(coinNames[s])symTerms[s].push(coinNames[s]);
-  });
+  // Fetch an RSS feed via allorigins proxy
+  async function rss(url,source){
+    const proxy='https://api.allorigins.win/get?url='+encodeURIComponent(url);
+    const r=await fetch(proxy,{signal:AbortSignal.timeout(12000)});
+    if(!r.ok)throw new Error('proxy error '+r.status);
+    const d=await r.json();
+    if(!d.contents)throw new Error('empty response');
+    const parser=new DOMParser();
+    const xml=parser.parseFromString(d.contents,'text/xml');
+    return parseRSS(xml,source);
+  }
+
+  // Three crypto RSS feeds that work reliably
+  const feeds=[
+    ['https://feeds.feedburner.com/CoinDesk','CoinDesk'],
+    ['https://cointelegraph.com/rss','CoinTelegraph'],
+    ['https://decrypt.co/feed','Decrypt'],
+  ];
 
   let items=[];
-
-  // Strategy 1: CoinGecko /news (free, no key, returns recent crypto news)
-  try{
-    const r=await fetch('https://api.coingecko.com/api/v3/news',{signal:AbortSignal.timeout(10000)});
-    if(r.ok){
-      const d=await r.json();
-      const articles=(d.data||d||[]);
-      articles.forEach(a=>{
-        const text=((a.title||'')+(a.description||'')).toLowerCase();
-        const matchedCoins=syms.filter(s=>symTerms[s].some(term=>text.includes(term)));
-        if(matchedCoins.length){
-          items.push({
-            title:(a.title||'').trim(),
-            url:a.url||a.news_site_url||'',
-            source:a.news_site||a.source||'CoinGecko News',
-            ts:a.created_at?new Date(a.created_at).getTime():Date.now(),
-            coins:matchedCoins,
-            thumb:a.thumb_2x||a.thumb||null
-          });
-        }
-      });
-    }
-  }catch(e){console.warn('[news] CoinGecko failed:',e.message);}
-
-  // Strategy 2: per-coin CoinGecko status updates (community posts)
-  if(items.length<8){
-    const cgIds=syms.map(s=>CGIDS[s]||coinNames[s]||s.toLowerCase()).filter(Boolean);
-    for(const [sym,cgId] of syms.map((s,i)=>[s,cgIds[i]])){
-      try{
-        const r=await fetch(`https://api.coingecko.com/api/v3/coins/${cgId}/status_updates?per_page=3`,{signal:AbortSignal.timeout(7000)});
-        if(r.ok){
-          const d=await r.json();
-          (d.status_updates||[]).forEach(u=>{
-            if(!u.description)return;
-            items.push({title:u.description.slice(0,120)+(u.description.length>120?'…':''),url:`https://www.coingecko.com/en/coins/${cgId}`,source:'CoinGecko · '+sym,ts:new Date(u.created_at).getTime(),coins:[sym]});
-          });
-        }
-      }catch(e){}
-    }
-  }
-
-  // Strategy 3: RSS feeds filtered strictly to held coins
-  if(items.length<5){
-    const feeds=[
-      ['https://cointelegraph.com/rss','CoinTelegraph'],
-      ['https://decrypt.co/feed','Decrypt'],
-      ['https://www.coindesk.com/arc/outboundfeeds/rss/','CoinDesk'],
-    ];
-    async function tryRSS(url,source){
-      try{
-        const r=await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(url),{signal:AbortSignal.timeout(8000)});
-        if(!r.ok)return[];
-        const d=await r.json();
-        return(d.items||[]).map(i=>{
-          const text=((i.title||'')+(i.description||'')).toLowerCase();
-          const matchedCoins=syms.filter(s=>symTerms[s].some(term=>text.includes(term)));
-          if(!matchedCoins.length)return null;
-          return{title:(i.title||'').trim(),url:i.link||'',source,ts:i.pubDate?new Date(i.pubDate).getTime():Date.now(),coins:matchedCoins};
-        }).filter(Boolean);
-      }catch(e){return[];}
-    }
-    for(const [url,src] of feeds){
-      const got=await tryRSS(url,src);
+  for(const [url,src] of feeds){
+    try{
+      const got=await rss(url,src);
       items=[...items,...got];
-      if(items.length>=15)break;
-    }
+      console.log('[news]',src,got.length,'articles');
+      if(items.length>=20)break;
+    }catch(e){console.warn('[news]',src,'failed:',e.message);}
   }
-
-  // Deduplicate by title, sort by recency
-  const seen=new Set();
-  items=items.filter(i=>{
-    if(!i.title||!i.url)return false;
-    if(seen.has(i.title))return false;
-    seen.add(i.title);return true;
-  });
-  items.sort((a,b)=>b.ts-a.ts);
 
   if(items.length){
+    // deduplicate by title
+    const seen=new Set();
+    items=items.filter(i=>{if(seen.has(i.title))return false;seen.add(i.title);return true;});
     _newsCache=items;
     renderNews(items,syms);
     st.innerHTML='<span style="color:var(--g)">●</span> '+items.length+' stories';
   } else {
-    el.innerHTML=`<div style="padding:12px;font-size:10px;color:var(--mu)">No news found for your positions (${syms.join(', ')}). Try again in a moment.</div>`;
-    st.innerHTML='<span style="color:var(--r)">●</span> none';
+    el.innerHTML='<div style="padding:12px;font-size:10px;color:var(--mu)">Could not load news — check network connection.</div>';
+    st.innerHTML='<span style="color:var(--r)">●</span> failed';
   }
 }
 
 function renderNews(items,syms){
   const el=document.getElementById('newsFeed');
-  el.innerHTML=items.map(n=>{
+  // Sort: pinned coins first, then by time
+  const sorted=[...items].sort((a,b)=>{
+    const aMatch=a.coins&&a.coins.some(c=>syms.includes(c))?1:0;
+    const bMatch=b.coins&&b.coins.some(c=>syms.includes(c))?1:0;
+    if(bMatch!==aMatch)return bMatch-aMatch;
+    return b.ts-a.ts;
+  });
+  el.innerHTML=sorted.map(n=>{
     const ago=timeAgo(n.ts);
     const matchCoins=(n.coins||[]).filter(c=>syms.includes(c));
-    const coinColors={BTC:'var(--or)',ETH:'#627EEA',SOL:'#9945FF',LINK:'#2A5ADA',AAVE:'#B6509E'};
+    const sentColor=n.sentiment==='pos'?'var(--g)':n.sentiment==='neg'?'var(--r)':'var(--mu)';
+    const sentDot=n.sentiment==='pos'?'▲':n.sentiment==='neg'?'▼':'';
     return`<div class="news-row" onclick="window.open('${n.url}','_blank')">
       <div class="news-meta">
         <span class="news-src">${n.source}</span>
-        ${matchCoins.map(c=>`<span class="news-coin" style="color:${coinColors[c]||'var(--a)'}">${c}</span>`).join('')}
+        ${matchCoins.map(c=>`<span class="news-coin" style="color:${c==='BTC'?'var(--or)':'#efefef'}">${c}</span>`).join('') }
         <span class="news-time">${ago}</span>
+        ${sentDot?`<span style="color:${sentColor};font-size:9px">${sentDot}</span>`:''}
       </div>
       <div class="news-title">${n.title}</div>
     </div>`;
@@ -1636,7 +1627,7 @@ function render(){
       <td><div style="display:flex;align-items:center;gap:4px">
         ${r.lots.length>1?`<button class="xbtn" onclick="toggleExp('${r.sym}')">${isExp?'▾':'▸'}</button>`:'<span style="width:13px"></span>'}
         <div><div class="tkr" style="color:${r.sym==='USD'?'#888':col}">${r.sym}</div>
-        <div class="sub" style="${r.sym==='USD'&&r.totalAmt<0?'color:var(--r)':''}">${r.totalAmt.toLocaleString('en-US',{maximumFractionDigits:6})} ${r.sym}${r.lots.length>1?' · '+r.lots.length+' lots':''}${r.sym==='USD'&&r.totalAmt<0?' ⚠ OVERDRAFT':''}</div></div>
+        <div class="sub">${r.totalAmt.toLocaleString('en-US',{maximumFractionDigits:6})} ${r.sym}${r.lots.length>1?' · '+r.lots.length+' lots':''}</div></div>
       </div></td>
       <td class="ne">${r.cur!=null?fm(r.cur):'<span style="color:var(--mu)">—</span>'}</td>
       <td class="${fc(r.chg)}">${r.chg!=null?fp(r.chg):'—'}</td>
@@ -2362,9 +2353,12 @@ async function addNew(sym,amt,buy){
   const cost=amt*buy;
   // Debit USD position if one exists
   const usdLot=portfolio.find(p=>p.symbol.toUpperCase()==='USD');
-  if(usdLot){
-    usdLot.amount=parseFloat((usdLot.amount-cost).toFixed(4));
-    setSt('USD balance: -'+fm(cost)+' → '+fm(usdLot.amount));
+  if(usdLot&&usdLot.amount>0){
+    const debit=Math.min(cost,usdLot.amount);
+    const newUsd=parseFloat((usdLot.amount-debit).toFixed(4));
+    if(newUsd<1e-6){portfolio=portfolio.filter(p=>p.symbol.toUpperCase()!=='USD');}
+    else{usdLot.amount=newUsd;}
+    setSt('USD balance: -'+fm(debit)+' → '+fm(newUsd));
   }
   portfolio.push({id:mkId(),symbol:sym,amount:amt,avgBuy:buy});
   logHistory('ADD',sym,amt+' @ $'+buy,{lotId:portfolio[portfolio.length-1].id,amount:amt,price:buy});lsSave();
@@ -2858,22 +2852,7 @@ function renderDashboard(){
 
 setInterval(async()=>{if(!portfolio.length)return;await fetchPrices();render();},60000);
 
-// ═══ ZOOM & THEME ═══
-const FS_SIZES=[11,12,13,14,15,16,17,18];
-let _fsIdx=parseInt(localStorage.getItem('pt_fsIdx')||'2');
-function applyFontSize(){
-  const sz=FS_SIZES[_fsIdx];
-  const sm=Math.max(sz-2,9),xs=Math.max(sz-3,8),cell=Math.max(sz-1,10);
-  document.documentElement.style.setProperty('--fs',sz+'px');
-  document.documentElement.style.setProperty('--fs-sm',sm+'px');
-  document.documentElement.style.setProperty('--fs-xs',xs+'px');
-  document.documentElement.style.setProperty('--fs-cell',cell+'px');
-  const lbl=document.getElementById('zoomLabel');if(lbl)lbl.textContent=sz;
-  localStorage.setItem('pt_fsIdx',_fsIdx);
-}
-window.zoomIn=function(){if(_fsIdx<FS_SIZES.length-1){_fsIdx++;applyFontSize();}};
-window.zoomOut=function(){if(_fsIdx>0){_fsIdx--;applyFontSize();}};
-
+// ═══ THEME ═══
 let _theme=localStorage.getItem('pt_theme')||'dark';
 function applyTheme(){
   document.documentElement.setAttribute('data-theme',_theme);
@@ -2885,7 +2864,6 @@ window.toggleTheme=function(){_theme=_theme==='dark'?'light':'dark';applyTheme()
 
 // ═══ INIT ═══
 (async function(){
-  applyFontSize();
   applyTheme();
   const hadFile=await fsTryRestoreHandle();
 
