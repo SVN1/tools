@@ -3,21 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PORTFOLIO TERMINAL v4.2</title>
+<title>PORTFOLIO TERMINAL v4.3</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
+/* ── DARK THEME (default) ── */
 :root{
   --bg0:#0c0c0c;--bg1:#121212;--bg2:#181818;--bg3:#202020;--bg4:#282828;
   --or:#ff6200;--or2:#b84500;--org:rgba(255,98,0,.13);--orl:rgba(255,98,0,.32);
-  --g:#00e639;--r:#ff1a2e;--a:#ffaa00;--cy:#00c8f0;
+  --g:#00c832;--r:#ff1a2e;--a:#ffaa00;--cy:#00c8f0;
   --w:#efefef;--mu:#909090;--mu2:#404040;--bd:#252525;--bdh:#383838;
   --mono:'IBM Plex Mono','Courier New',monospace;
   --panel-h:220px;
+  --fs:13px;--fs-sm:11px;--fs-xs:10px;--fs-xxs:9px;--fs-cell:12px;
 }
+
+/* ── LIGHT THEME ── */
+[data-theme="light"]{
+  --bg0:#f0ede8;--bg1:#f7f5f2;--bg2:#ede9e3;--bg3:#e4e0d9;--bg4:#d9d4cc;
+  --or:#d45200;--or2:#a33d00;--org:rgba(212,82,0,.1);--orl:rgba(212,82,0,.28);
+  --g:#1a8c3a;--r:#cc1122;--a:#b87800;--cy:#0088aa;
+  --w:#1a1814;--mu:#6b6560;--mu2:#b8b2aa;--bd:#ccc8c0;--bdh:#aaa49a;
+}
+[data-theme="light"] body::after{display:none;}
+[data-theme="light"] .top{background:var(--or);border-bottom:2px solid var(--or2);}
+[data-theme="light"] .brand,.tclock{color:#fff;}
+[data-theme="light"] .main-tab.on{color:#fff;}
+[data-theme="light"] tbody tr:hover td{background:#e8e4dc;}
+[data-theme="light"] .tj-table tr:hover td{background:#e8e4dc;}
+[data-theme="light"] .news-row:hover{background:#e8e4dc;}
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow:hidden;}
-body{background:var(--bg0);color:var(--w);font-family:var(--mono);font-size:13px;line-height:1.4;}
+html{color-scheme:dark;}
+[data-theme="light"]{color-scheme:light;}
+body{background:var(--bg0);color:var(--w);font-family:var(--mono);font-size:var(--fs);line-height:1.4;}
 body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.022) 2px,rgba(0,0,0,.022) 4px);pointer-events:none;z-index:9999;}
 
 /* ── TOP BAR ── */
@@ -65,9 +84,9 @@ th{padding:4px 7px;text-align:right;font-size:10px;font-weight:600;color:var(--o
 th:first-child{text-align:left;}th:last-child{border-right:none;}
 tbody tr{border-bottom:1px solid var(--bd);transition:background .08s;}
 tbody tr:hover{background:var(--bg2);}
-td{padding:5px 7px;text-align:right;white-space:nowrap;border-right:1px solid var(--bd);font-size:12px;}
+td{font-size:var(--fs-cell);}
 td:first-child{text-align:left;}td:last-child{border-right:none;}
-.tkr{font-weight:600;font-size:12px;letter-spacing:.04em;}
+.tkr{font-size:var(--fs-cell);letter-spacing:.04em;}
 .sub{font-size:10px;color:#888;margin-top:1px;}
 .er td{text-align:center;padding:24px;color:#888;font-size:11px;}
 
@@ -95,21 +114,21 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 
 /* lot rows */
 .lotrow{border-bottom:1px solid var(--bd);background:rgba(255,98,0,.03);}
-.lotrow td{padding:3px 7px;font-size:10px;color:#888;border-right:1px solid var(--bd);}
+.lotrow td{font-size:var(--fs-xs);color:#888;border-right:1px solid var(--bd);}
 .lotrow td:first-child{padding-left:22px;text-align:left;}
 .lotrow td:last-child{border-right:none;}
 .xbtn{background:none;border:none;color:var(--mu);font-family:var(--mono);font-size:9px;cursor:pointer;padding:0 2px;}
 .xbtn:hover{color:var(--or);}
 
 /* inline edit */
-.ie{background:var(--bg3);border:1px solid var(--or);color:var(--w);font-family:var(--mono);font-size:11px;padding:2px 4px;width:78px;outline:none;}
+.ie{font-size:var(--fs-sm);padding:2px 4px;width:78px;outline:none;}
 
 /* notes */
 .note-cell{max-width:160px;min-width:80px;}
 .note-text{font-size:10px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:155px;cursor:pointer;padding:1px 3px;}
 .note-text:hover{color:var(--w);}
 .note-text.empty{color:var(--mu2);font-style:italic;}
-.note-input{background:var(--bg3);border:1px solid var(--or);color:var(--w);font-family:var(--mono);font-size:10px;padding:2px 5px;width:155px;outline:none;}
+.note-input{font-size:var(--fs-xs);padding:2px 5px;width:155px;outline:none;}
 
 /* row btns */
 .db{background:none;border:1px solid var(--mu2);color:var(--mu);font-family:var(--mono);font-size:9px;padding:1px 4px;cursor:pointer;transition:all .1s;}
@@ -151,9 +170,9 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 .sbody{padding:8px;overflow-y:auto;flex:1;}
 .sbody::-webkit-scrollbar{width:3px;}
 .sbody::-webkit-scrollbar-thumb{background:var(--bdh);}
-.inp{width:100%;background:var(--bg2);border:1px solid var(--bdh);color:var(--w);font-family:var(--mono);font-size:11px;padding:4px 6px;outline:none;}
+.inp{width:100%;background:var(--bg2);border:1px solid var(--bdh);color:var(--w);font-family:var(--mono);font-size:var(--fs-sm);padding:4px 6px;outline:none;}
 .inp:focus{border-color:var(--or);}
-.lbl{font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
+.lbl{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
 .tbtn{background:var(--or);border:none;color:#000;font-family:var(--mono);font-size:9px;font-weight:600;padding:4px 8px;cursor:pointer;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;}
 .tbtn:hover{background:var(--a);}
 .tbtn.s{background:var(--bg3);color:var(--or);border:1px solid var(--orl);}
@@ -276,14 +295,14 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 .tj-wrap::-webkit-scrollbar-thumb{background:var(--bd);}
 .tj-table{border-collapse:collapse;width:max-content;min-width:100%;}
 .tj-table th{position:sticky;top:0;background:var(--bg2);font-size:9px;color:var(--mu);letter-spacing:.1em;padding:5px 8px;border-right:1px solid var(--bd);border-bottom:1px solid var(--or2);white-space:nowrap;z-index:10;}
-.tj-table td{font-size:10px;padding:4px 7px;border-right:1px solid var(--bd);border-bottom:1px solid var(--bg3);white-space:nowrap;vertical-align:middle;}
+.tj-table td{font-size:var(--fs-xs);padding:4px 7px;border-right:1px solid var(--bd);border-bottom:1px solid var(--bg3);white-space:nowrap;vertical-align:middle;}
 .tj-table tr:hover td{background:var(--bg3);}
 .tj-table tr.tj-open td{background:rgba(255,98,0,.04);}
 .tj-table tr.tj-closed td{opacity:.85;}
-.tj-cell-in{background:transparent;border:none;color:var(--w);font-family:var(--mono);font-size:10px;width:100%;outline:none;padding:0;}
+.tj-cell-in{font-size:var(--fs-xs);width:100%;outline:none;padding:0;}
 .tj-cell-in:focus{color:var(--or);}
 .tj-cell-in::placeholder{color:var(--mu2);}
-.tj-sel{background:var(--bg3);border:1px solid var(--bd);color:var(--w);font-family:var(--mono);font-size:10px;outline:none;padding:1px 3px;cursor:pointer;}
+.tj-sel{font-size:var(--fs-xs);outline:none;padding:1px 3px;cursor:pointer;}
 .tj-sel:focus{border-color:var(--or);}
 .tj-badge{font-size:8px;padding:1px 5px;letter-spacing:.08em;border-radius:0;}
 .tj-badge.LONG{background:rgba(0,230,57,.15);color:var(--g);border:1px solid rgba(0,230,57,.3);}
@@ -303,7 +322,7 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 .tj-link:hover{text-decoration:underline;}
 .tj-ac-wrap{position:relative;display:inline-block;}
 .tj-ac-list{position:absolute;top:100%;left:0;background:var(--bg3);border:1px solid var(--or);z-index:200;min-width:140px;max-height:120px;overflow-y:auto;display:none;}
-.tj-ac-item{padding:4px 8px;font-size:10px;color:var(--w);cursor:pointer;white-space:nowrap;}
+.tj-ac-item{font-size:var(--fs-xs);color:var(--w);cursor:pointer;white-space:nowrap;}
 .tj-ac-item:hover{background:var(--bg4);color:var(--or);}
 
 /* ── DASHBOARD TAB ── */
@@ -341,8 +360,16 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 
 <!-- TOP -->
 <div class="top">
-  <span class="brand">▶ PORTFOLIO TERMINAL <span style="font-size:9px;opacity:.6">v4.2</span></span>
-  <div class="top-r"><span class="tclock" id="clock">--:--:--</span></div>
+  <span class="brand">▶ PORTFOLIO TERMINAL <span style="font-size:9px;opacity:.7">v4.3</span></span>
+  <div class="top-r">
+    <div style="display:flex;align-items:center;gap:4px">
+      <button onclick="zoomOut()" style="background:rgba(0,0,0,.2);border:none;color:#fff;font-family:var(--mono);font-size:13px;cursor:pointer;width:20px;height:20px;display:flex;align-items:center;justify-content:center;line-height:1" title="Decrease font size">−</button>
+      <span id="zoomLabel" style="font-size:9px;color:rgba(255,255,255,.7);min-width:24px;text-align:center">13</span>
+      <button onclick="zoomIn()" style="background:rgba(0,0,0,.2);border:none;color:#fff;font-family:var(--mono);font-size:13px;cursor:pointer;width:20px;height:20px;display:flex;align-items:center;justify-content:center;line-height:1" title="Increase font size">+</button>
+    </div>
+    <button onclick="toggleTheme()" id="themeBtn" style="background:rgba(0,0,0,.2);border:none;color:#fff;font-family:var(--mono);font-size:9px;cursor:pointer;padding:2px 8px;letter-spacing:.08em" title="Toggle light/dark mode">☀ LIGHT</button>
+    <span class="tclock" id="clock">--:--:--</span>
+  </div>
 </div>
 <!-- MENU -->
 <div class="menu">
@@ -2831,9 +2858,35 @@ function renderDashboard(){
 
 setInterval(async()=>{if(!portfolio.length)return;await fetchPrices();render();},60000);
 
+// ═══ ZOOM & THEME ═══
+const FS_SIZES=[11,12,13,14,15,16,17,18];
+let _fsIdx=parseInt(localStorage.getItem('pt_fsIdx')||'2');
+function applyFontSize(){
+  const sz=FS_SIZES[_fsIdx];
+  const sm=Math.max(sz-2,9),xs=Math.max(sz-3,8),cell=Math.max(sz-1,10);
+  document.documentElement.style.setProperty('--fs',sz+'px');
+  document.documentElement.style.setProperty('--fs-sm',sm+'px');
+  document.documentElement.style.setProperty('--fs-xs',xs+'px');
+  document.documentElement.style.setProperty('--fs-cell',cell+'px');
+  const lbl=document.getElementById('zoomLabel');if(lbl)lbl.textContent=sz;
+  localStorage.setItem('pt_fsIdx',_fsIdx);
+}
+window.zoomIn=function(){if(_fsIdx<FS_SIZES.length-1){_fsIdx++;applyFontSize();}};
+window.zoomOut=function(){if(_fsIdx>0){_fsIdx--;applyFontSize();}};
+
+let _theme=localStorage.getItem('pt_theme')||'dark';
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme',_theme);
+  const btn=document.getElementById('themeBtn');
+  if(btn)btn.textContent=_theme==='dark'?'☀ LIGHT':'☾ DARK';
+  localStorage.setItem('pt_theme',_theme);
+}
+window.toggleTheme=function(){_theme=_theme==='dark'?'light':'dark';applyTheme();};
+
 // ═══ INIT ═══
 (async function(){
-  // Try to restore file handle from previous session (no user gesture needed if permission persists)
+  applyFontSize();
+  applyTheme();
   const hadFile=await fsTryRestoreHandle();
 
   // If file was restored, data was already loaded inside fsTryRestoreHandle
