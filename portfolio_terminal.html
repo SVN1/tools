@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PORTFOLIO TERMINAL v4.1</title>
+<title>PORTFOLIO TERMINAL v4.8</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -269,31 +269,63 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 #undoToast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 
 /* ── SORT HEADERS ── */
-/* ── MAIN TABS ── */
+/* ── LEGACY TRADES ── */
+.tj-table tr.legacy-row td{opacity:.65;}
+.tj-table tr.legacy-row td:first-child{border-left:2px solid var(--mu2);}
+.tj-table tr.legacy-row:hover td{opacity:.85;}
+.tag-legacy{font-size:8px;padding:1px 4px;background:var(--bg3);border:1px solid var(--mu2);color:var(--mu);letter-spacing:.06em;vertical-align:middle;}
+.tj-ms-wrap{position:relative;display:inline-block;}
+.tj-ms-btn{font-size:9px;padding:2px 8px;border:1px solid var(--bd);color:var(--mu);cursor:pointer;background:var(--bg2);font-family:var(--mono);letter-spacing:.06em;white-space:nowrap;height:20px;display:flex;align-items:center;gap:4px;}
+.tj-ms-btn:hover,.tj-ms-btn.active{border-color:var(--or);color:var(--or);}
+.tj-ms-btn.filtered{border-color:var(--or);color:var(--or);background:var(--org);}
+.tj-ms-dropdown{position:absolute;top:100%;left:0;background:var(--bg2);border:1px solid var(--or);z-index:500;min-width:160px;box-shadow:0 4px 12px rgba(0,0,0,.4);display:none;}
+.tj-ms-dropdown.open{display:block;}
+.tj-ms-header{padding:4px 8px;font-size:8px;color:var(--mu);letter-spacing:.1em;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;}
+.tj-ms-header a{color:var(--or);cursor:pointer;text-decoration:none;}
+.tj-ms-option{display:flex;align-items:center;gap:6px;padding:4px 8px;cursor:pointer;font-size:10px;color:var(--w);}
+.tj-ms-option:hover{background:var(--bg3);}
+.tj-ms-option input[type=checkbox]{accent-color:var(--or);cursor:pointer;width:12px;height:12px;}
+.tj-ms-search{width:100%;background:var(--bg3);border:none;border-bottom:1px solid var(--bd);color:var(--w);font-family:var(--mono);font-size:10px;padding:4px 8px;outline:none;}
+/* ── DASHBOARD PERIOD FILTER ── */
+.dash-period-btn{font-size:8px;padding:2px 9px;border:1px solid var(--bd);color:var(--mu);cursor:pointer;background:none;font-family:var(--mono);letter-spacing:.06em;white-space:nowrap;}
+.dash-period-btn:hover{border-color:var(--or);color:var(--or);}
+.dash-period-btn.on{border-color:var(--or);color:var(--or);background:var(--org);}
+.dash-custom-dates{display:none;align-items:center;gap:4px;}
+.dash-custom-dates.show{display:flex;}
+.dash-date-in{background:var(--bg3);border:1px solid var(--bd);color:var(--w);font-family:var(--mono);font-size:9px;padding:1px 5px;outline:none;color-scheme:dark;}
+[data-theme="light"] .dash-date-in{color-scheme:light;}
+.dash-date-in:focus{border-color:var(--or);}
+.eq-tf-btn{font-size:8px;padding:1px 6px;border:1px solid var(--bd);color:var(--mu);cursor:pointer;background:none;font-family:var(--mono);letter-spacing:.06em;}
+.eq-tf-btn:hover{border-color:var(--or);color:var(--or);}
+.eq-tf-btn.on{border-color:var(--or);color:var(--or);background:var(--org);}
 .main-tabs{display:flex;height:28px;background:var(--bg1);border-bottom:2px solid var(--or);flex-shrink:0;}
 .main-tab{padding:0 18px;display:flex;align-items:center;font-size:10px;color:var(--mu);cursor:pointer;letter-spacing:.12em;border-right:1px solid var(--bd);transition:all .15s;}
 .main-tab:hover{color:var(--w);background:var(--bg2);}
 .main-tab.on{color:#000;background:var(--or);font-weight:600;}
 
 /* ── TRADES TAB ── */
-#tradesTab{display:none;flex-direction:column;height:100%;overflow:hidden;}
+#tradesTab{display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;}
 #tradesTab.active{display:flex;}
-.tj-toolbar{height:30px;background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:6px;padding:0 10px;flex-shrink:0;}
+.tj-toolbar{background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px;padding:5px 10px;flex-shrink:0;}
 .tj-btn{font-size:9px;padding:2px 10px;border:1px solid var(--bd);color:var(--mu);cursor:pointer;background:none;font-family:var(--mono);letter-spacing:.08em;transition:all .1s;}
 .tj-btn:hover{border-color:var(--or);color:var(--or);}
 .tj-btn.primary{border-color:var(--or);color:var(--or);}
 .tj-filter{font-size:9px;padding:2px 6px;background:var(--bg3);border:1px solid var(--bd);color:var(--mu);font-family:var(--mono);outline:none;}
 .tj-filter:focus{border-color:var(--or);}
 .tj-sep{width:1px;height:14px;background:var(--bd);margin:0 4px;}
-.tj-wrap{flex:1;overflow:auto;}
-.tj-wrap::-webkit-scrollbar{width:4px;height:6px;}
-.tj-wrap::-webkit-scrollbar-thumb{background:var(--bd);}
+.tj-wrap{flex:1;overflow:auto;min-height:0;}
+.tj-wrap::-webkit-scrollbar{width:8px;height:8px;}
+.tj-wrap::-webkit-scrollbar-thumb{background:var(--or2);border-radius:0;}
+.tj-wrap::-webkit-scrollbar-track{background:var(--bg2);}
+.tj-wrap::-webkit-scrollbar-thumb:hover{background:var(--or);}
 .tj-table{border-collapse:collapse;width:max-content;min-width:100%;}
 .tj-table th{position:sticky;top:0;background:var(--bg2);font-size:9px;color:var(--mu);letter-spacing:.1em;padding:5px 8px;border-right:1px solid var(--bd);border-bottom:1px solid var(--or2);white-space:nowrap;z-index:10;}
 .tj-table td{font-size:10px;padding:4px 7px;border-right:1px solid var(--bd);border-bottom:1px solid var(--bg3);white-space:nowrap;vertical-align:middle;}
 .tj-table tr:hover td{background:var(--bg3);}
 .tj-table tr.tj-open td{background:rgba(255,98,0,.04);}
 .tj-table tr.tj-closed td{opacity:.85;}
+.tj-table tr.tj-review td{background:rgba(0,200,240,.04);}
+.tj-table tr.tj-review td:first-child{border-left:2px solid var(--cy);}
 .tj-cell-in{background:transparent;border:none;color:var(--w);font-family:var(--mono);font-size:10px;width:100%;outline:none;padding:0;}
 .tj-cell-in:focus{color:var(--or);}
 .tj-cell-in::placeholder{color:var(--mu2);}
@@ -343,7 +375,7 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 .dash-table td{font-size:10px;padding:5px 10px;border-bottom:1px solid var(--bg3);}
 .dash-table tr:last-child td{border-bottom:none;}
 .dash-table tr:hover td{background:var(--bg3);}
-.dash-filter-bar{height:26px;background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:6px;padding:0 10px;flex-shrink:0;}
+.dash-filter-bar{min-height:26px;height:auto;background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px;padding:4px 10px;flex-shrink:0;}
 .dash-filter-btn{font-size:8px;padding:1px 8px;border:1px solid var(--bd);color:var(--mu);cursor:pointer;background:none;font-family:var(--mono);}
 .dash-filter-btn.on{border-color:var(--or);color:var(--or);background:var(--org);}
 .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
@@ -355,7 +387,7 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 
 <!-- TOP -->
 <div class="top">
-  <span class="brand">▶ PORTFOLIO TERMINAL <span style="font-size:9px;opacity:.6">v4.4</span></span>
+  <span class="brand">▶ PORTFOLIO TERMINAL <span style="font-size:9px;opacity:.6">v4.8</span></span>
   <div class="top-r">
     <button onclick="toggleTheme()" id="themeBtn" style="background:rgba(0,0,0,.25);border:none;color:#fff;font-family:var(--mono);font-size:9px;cursor:pointer;padding:2px 8px;letter-spacing:.08em;height:18px;" title="Toggle light/dark mode">☀ LIGHT</button>
     <span class="tclock" id="clock">--:--:--</span>
@@ -416,7 +448,7 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
             <th class="sortable" onclick="cycleSort('pnlp')">P&L%</th>
             <th class="sortable" onclick="cycleSort('wt')">WEIGHT</th>
             <th>EMA 9/21/50/100/200</th>
-            <th class="sortable" onclick="cycleSort('curDD')" title="Drawdown from your avg buy price">DD FROM ENTRY</th>
+            <th class="sortable" onclick="cycleSort('hwmDD')" title="Drawdown from highest price since entry">DD HWM</th>
             <th>NOTES</th>
             <th>ACTIONS</th>
           </tr></thead>
@@ -496,6 +528,14 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
           <div class="eq-stat">Return: <span id="eq-ret">0%</span></div>
           <div class="eq-stat">Max DD: <span id="eq-mdd" style="color:var(--r)">—</span></div>
           <div class="eq-stat">Points: <span id="eq-pts">0</span></div>
+          <div style="display:flex;gap:3px;margin-left:auto;align-items:center">
+            <button class="eq-tf-btn on" onclick="setEqTf('all',this)">ALL</button>
+            <button class="eq-tf-btn" onclick="setEqTf('ytd',this)">YTD</button>
+            <button class="eq-tf-btn" onclick="setEqTf('6m',this)">6M</button>
+            <button class="eq-tf-btn" onclick="setEqTf('3m',this)">3M</button>
+            <button class="eq-tf-btn" onclick="setEqTf('1m',this)">1M</button>
+            <button class="eq-tf-btn" onclick="setEqTf('1w',this)">1W</button>
+          </div>
         </div>
         <div class="cw" style="flex:1;min-height:0"><canvas id="eqChart"></canvas></div>
       </div>
@@ -510,27 +550,101 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 
   <!-- ══════════════ TRADES TAB ══════════════ -->
   <div id="tradesTab">
-    <div class="tj-toolbar">
+    <div class="tj-toolbar" style="flex-wrap:wrap;height:auto;min-height:30px;padding:4px 10px;gap:4px;">
       <button class="tj-btn primary" onclick="tjAddRow()">+ NEW TRADE</button>
       <div class="tj-sep"></div>
-      <select class="tj-filter" id="tjFilterStatus" onchange="renderTrades()">
-        <option value="">ALL STATUS</option>
-        <option value="OPEN">OPEN</option>
-        <option value="CLOSED">CLOSED</option>
-      </select>
-      <select class="tj-filter" id="tjFilterDir" onchange="renderTrades()">
-        <option value="">ALL DIRECTIONS</option>
-        <option value="LONG">LONG</option>
-        <option value="SHORT">SHORT</option>
-      </select>
-      <select class="tj-filter" id="tjFilterGrade" onchange="renderTrades()">
-        <option value="">ALL GRADES</option>
-        <option value="A">A</option>
-        <option value="B">B</option>
-        <option value="C">C</option>
-        <option value="D">D</option>
-      </select>
-      <input class="tj-filter" id="tjSearch" placeholder="search coin / strategy…" oninput="renderTrades()" style="width:160px">
+      <!-- Status -->
+      <div class="tj-ms-wrap" id="ms-status">
+        <button class="tj-ms-btn" onclick="tjToggleMs('status')">STATUS ▾</button>
+        <div class="tj-ms-dropdown" id="ms-status-dd">
+          <div class="tj-ms-header"><span>STATUS</span><a onclick="tjMsAll('status')">ALL</a></div>
+          <label class="tj-ms-option"><input type="checkbox" value="OPEN" checked onchange="tjMsChange('status')"> OPEN</label>
+          <label class="tj-ms-option"><input type="checkbox" value="CLOSED" checked onchange="tjMsChange('status')"> CLOSED</label>
+          <label class="tj-ms-option"><input type="checkbox" value="REVIEW" checked onchange="tjMsChange('status')"> REVIEW</label>
+        </div>
+      </div>
+      <!-- Direction -->
+      <div class="tj-ms-wrap" id="ms-dir">
+        <button class="tj-ms-btn" onclick="tjToggleMs('dir')">DIRECTION ▾</button>
+        <div class="tj-ms-dropdown" id="ms-dir-dd">
+          <div class="tj-ms-header"><span>DIRECTION</span><a onclick="tjMsAll('dir')">ALL</a></div>
+          <label class="tj-ms-option"><input type="checkbox" value="LONG" checked onchange="tjMsChange('dir')"> LONG</label>
+          <label class="tj-ms-option"><input type="checkbox" value="SHORT" checked onchange="tjMsChange('dir')"> SHORT</label>
+        </div>
+      </div>
+      <!-- Grade -->
+      <div class="tj-ms-wrap" id="ms-grade">
+        <button class="tj-ms-btn" onclick="tjToggleMs('grade')">GRADE ▾</button>
+        <div class="tj-ms-dropdown" id="ms-grade-dd">
+          <div class="tj-ms-header"><span>SETUP GRADE</span><a onclick="tjMsAll('grade')">ALL</a></div>
+          <label class="tj-ms-option"><input type="checkbox" value="A" checked onchange="tjMsChange('grade')"> A</label>
+          <label class="tj-ms-option"><input type="checkbox" value="B" checked onchange="tjMsChange('grade')"> B</label>
+          <label class="tj-ms-option"><input type="checkbox" value="C" checked onchange="tjMsChange('grade')"> C</label>
+          <label class="tj-ms-option"><input type="checkbox" value="D" checked onchange="tjMsChange('grade')"> D</label>
+          <label class="tj-ms-option"><input type="checkbox" value="" checked onchange="tjMsChange('grade')"> (none)</label>
+        </div>
+      </div>
+      <!-- Outcome -->
+      <div class="tj-ms-wrap" id="ms-outcome">
+        <button class="tj-ms-btn" onclick="tjToggleMs('outcome')">OUTCOME ▾</button>
+        <div class="tj-ms-dropdown" id="ms-outcome-dd">
+          <div class="tj-ms-header"><span>OUTCOME</span><a onclick="tjMsAll('outcome')">ALL</a></div>
+          <label class="tj-ms-option"><input type="checkbox" value="Target Hit" checked onchange="tjMsChange('outcome')"> Target Hit</label>
+          <label class="tj-ms-option"><input type="checkbox" value="Stop Hit" checked onchange="tjMsChange('outcome')"> Stop Hit</label>
+          <label class="tj-ms-option"><input type="checkbox" value="Break Even" checked onchange="tjMsChange('outcome')"> Break Even</label>
+          <label class="tj-ms-option"><input type="checkbox" value="In Profit (before target)" checked onchange="tjMsChange('outcome')"> In Profit</label>
+          <label class="tj-ms-option"><input type="checkbox" value="Before Stop" checked onchange="tjMsChange('outcome')"> Before Stop</label>
+          <label class="tj-ms-option"><input type="checkbox" value="Under Stop" checked onchange="tjMsChange('outcome')"> Under Stop</label>
+          <label class="tj-ms-option"><input type="checkbox" value="" checked onchange="tjMsChange('outcome')"> (none / open)</label>
+        </div>
+      </div>
+      <!-- Coin (dynamic) -->
+      <div class="tj-ms-wrap" id="ms-coin">
+        <button class="tj-ms-btn" onclick="tjToggleMs('coin')">COIN ▾</button>
+        <div class="tj-ms-dropdown" id="ms-coin-dd" style="min-width:140px">
+          <div class="tj-ms-header"><span>COIN</span><a onclick="tjMsAll('coin')">ALL</a></div>
+          <input class="tj-ms-search" placeholder="search…" oninput="tjCoinSearch(this.value)">
+          <div id="ms-coin-list"></div>
+        </div>
+      </div>
+      <!-- Strategy (dynamic) -->
+      <div class="tj-ms-wrap" id="ms-strategy">
+        <button class="tj-ms-btn" onclick="tjToggleMs('strategy')">STRATEGY ▾</button>
+        <div class="tj-ms-dropdown" id="ms-strategy-dd" style="min-width:180px">
+          <div class="tj-ms-header"><span>STRATEGY</span><a onclick="tjMsAll('strategy')">ALL</a></div>
+          <input class="tj-ms-search" placeholder="search…" oninput="tjDynSearch('strategy',this.value)">
+          <div id="ms-strategy-list"></div>
+        </div>
+      </div>
+      <!-- Trigger (dynamic) -->
+      <div class="tj-ms-wrap" id="ms-trigger">
+        <button class="tj-ms-btn" onclick="tjToggleMs('trigger')">TRIGGER ▾</button>
+        <div class="tj-ms-dropdown" id="ms-trigger-dd" style="min-width:180px">
+          <div class="tj-ms-header"><span>TRIGGER</span><a onclick="tjMsAll('trigger')">ALL</a></div>
+          <input class="tj-ms-search" placeholder="search…" oninput="tjDynSearch('trigger',this.value)">
+          <div id="ms-trigger-list"></div>
+        </div>
+      </div>
+      <!-- Demon (dynamic) -->
+      <div class="tj-ms-wrap" id="ms-demon">
+        <button class="tj-ms-btn" onclick="tjToggleMs('demon')">DEMON ▾</button>
+        <div class="tj-ms-dropdown" id="ms-demon-dd" style="min-width:160px">
+          <div class="tj-ms-header"><span>DEMON</span><a onclick="tjMsAll('demon')">ALL</a></div>
+          <div id="ms-demon-list"></div>
+        </div>
+      </div>
+      <!-- Emotion (dynamic) -->
+      <div class="tj-ms-wrap" id="ms-emotion">
+        <button class="tj-ms-btn" onclick="tjToggleMs('emotion')">EMOTION ▾</button>
+        <div class="tj-ms-dropdown" id="ms-emotion-dd" style="min-width:160px">
+          <div class="tj-ms-header"><span>EMOTION</span><a onclick="tjMsAll('emotion')">ALL</a></div>
+          <div id="ms-emotion-list"></div>
+        </div>
+      </div>
+      <div class="tj-sep"></div>
+      <input class="tj-filter" id="tjSearch" placeholder="search text…" oninput="renderTrades()" style="width:130px">
+      <div class="tj-sep"></div>
+      <button class="tj-btn" id="legacyToggleBtn" onclick="toggleLegacy()" style="border-color:var(--mu2);color:var(--mu)">⊡ LEGACY</button>
       <div class="tj-sep"></div>
       <span style="font-size:9px;color:var(--mu)" id="tjCount">0 trades</span>
     </div>
@@ -539,7 +653,7 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
         <thead><tr>
           <th>#</th>
           <th>COIN</th><th>BASE</th><th>STATUS</th><th>DIR</th>
-          <th>SIZE</th><th>ENTRY</th><th>TARGET</th><th>SL</th>
+          <th>SIZE (COIN)</th><th>SIZE (USD)</th><th>ENTRY</th><th>TARGET</th><th>SL</th>
           <th>POT. LOSS</th><th>RISK $</th><th>REWARD %</th><th>EXP RR</th>
           <th>EXIT</th><th>PNL $</th><th>PNL %</th><th>REAL RR</th>
           <th>STRATEGY</th><th>TRIGGER</th><th>SETUP</th>
@@ -556,20 +670,36 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
   <!-- ══════════════ DASHBOARD TAB ══════════════ -->
   <div id="dashTab">
     <div class="dash-filter-bar">
-      <span style="font-size:9px;color:var(--mu);letter-spacing:.08em">FILTER:</span>
+      <span style="font-size:9px;color:var(--mu);letter-spacing:.08em">DIR:</span>
       <button class="dash-filter-btn on" onclick="dashFilter('all',this)">ALL</button>
       <button class="dash-filter-btn" onclick="dashFilter('LONG',this)">LONG</button>
       <button class="dash-filter-btn" onclick="dashFilter('SHORT',this)">SHORT</button>
       <div style="width:1px;height:12px;background:var(--bd);margin:0 4px"></div>
-      <button class="dash-filter-btn on" onclick="dashGradeFilter('all',this)">ALL GRADES</button>
+      <span style="font-size:9px;color:var(--mu);letter-spacing:.08em">GRADE:</span>
+      <button class="dash-filter-btn on" onclick="dashGradeFilter('all',this)">ALL</button>
       <button class="dash-filter-btn" onclick="dashGradeFilter('A',this)">A</button>
       <button class="dash-filter-btn" onclick="dashGradeFilter('B',this)">B</button>
       <button class="dash-filter-btn" onclick="dashGradeFilter('C',this)">C</button>
       <button class="dash-filter-btn" onclick="dashGradeFilter('D',this)">D</button>
       <div style="width:1px;height:12px;background:var(--bd);margin:0 4px"></div>
-      <select class="tj-filter" id="dashYear" onchange="renderDashboard()" style="font-size:8px">
-        <option value="">ALL TIME</option>
-      </select>
+      <span style="font-size:9px;color:var(--mu);letter-spacing:.08em">PERIOD:</span>
+      <button class="dash-period-btn on" id="dp-all" onclick="dashSetPeriod('all',this)">ALL TIME</button>
+      <button class="dash-period-btn" id="dp-wtd" onclick="dashSetPeriod('wtd',this)">WTD</button>
+      <button class="dash-period-btn" id="dp-l7" onclick="dashSetPeriod('l7',this)">L7D</button>
+      <button class="dash-period-btn" id="dp-mtd" onclick="dashSetPeriod('mtd',this)">MTD</button>
+      <button class="dash-period-btn" id="dp-l30" onclick="dashSetPeriod('l30',this)">L30D</button>
+      <button class="dash-period-btn" id="dp-ytd" onclick="dashSetPeriod('ytd',this)">YTD</button>
+      <button class="dash-period-btn" id="dp-custom" onclick="dashSetPeriod('custom',this)">CUSTOM</button>
+      <div class="dash-custom-dates" id="dashCustomDates">
+        <input type="date" class="dash-date-in" id="dashDateFrom" onchange="renderDashboard()">
+        <span style="font-size:9px;color:var(--mu)">→</span>
+        <input type="date" class="dash-date-in" id="dashDateTo" onchange="renderDashboard()">
+      </div>
+      <div style="width:1px;height:12px;background:var(--bd);margin:0 4px"></div>
+      <span style="font-size:9px;color:var(--mu);letter-spacing:.08em">LEGACY:</span>
+      <button class="dash-filter-btn on" onclick="dashLegacyFilter('all',this)">ALL</button>
+      <button class="dash-filter-btn" onclick="dashLegacyFilter('exclude',this)">EXCL.</button>
+      <button class="dash-filter-btn" onclick="dashLegacyFilter('only',this)">ONLY</button>
     </div>
     <div class="dash-scroll" id="dashScroll">
       <!-- KPIs -->
@@ -655,7 +785,22 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
   </div>
 </div>
 
-<!-- FILE SETUP MODAL -->
+<!-- EXPORT MODAL -->
+<div class="ov" id="exportModal">
+  <div class="modal" style="width:340px">
+    <div class="mt">⬇ EXPORT DATA</div>
+    <div style="font-size:10px;color:var(--mu);margin-bottom:14px;line-height:1.7">Choose how to save your JSON backup.</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="tbtn" onclick="doExportJSON('save')" style="width:100%;padding:9px;text-align:left">
+        💾 &nbsp;SAVE — <span style="font-weight:400;font-size:9px">portfolio_data.json (always same filename, replaces old)</span>
+      </button>
+      <button class="tbtn s" onclick="doExportJSON('snapshot')" style="width:100%;padding:9px;text-align:left">
+        📸 &nbsp;SNAPSHOT — <span style="font-weight:400;font-size:9px">portfolio_2025-01-15.json (dated, keeps all versions)</span>
+      </button>
+    </div>
+    <button class="cbtn" onclick="closeExportModal()" style="width:100%;padding:6px;margin-top:12px">CANCEL</button>
+  </div>
+</div>
 <div class="ov" id="fileModal">
   <div class="modal" style="width:420px">
     <div class="mt">▶ LOCAL DATA FILE</div>
@@ -747,41 +892,6 @@ let prices    = {};
 let emas      = {};
 let signals   = {};
 
-// ── MOCK TRADES (demo data — only injected if no trades exist yet) ──
-if(!trades.length){
-  const _mid=()=>'tr_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-  trades=[
-    // JANUARY
-    {id:_mid(),coin:'BTC',base:'USDT',status:'CLOSED',direction:'LONG',size:0.15,entry:42800,target:46500,sl:41200,exit:46300,strategy:'Trend Continuation',trigger:'EMA cross + volume surge',setupGrade:'A',dateOpen:'2025-01-06',dateClose:'2025-01-14',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Confident',chart:'',notes:'Clean breakout above Jan range'},
-    {id:_mid(),coin:'ETH',base:'USDT',status:'CLOSED',direction:'LONG',size:2.5,entry:2280,target:2550,sl:2180,exit:2195,strategy:'Range Breakout',trigger:'Support retest + RSI divergence',setupGrade:'B',dateOpen:'2025-01-10',dateClose:'2025-01-13',outcome:'Stop Hit',propShop:'Y',unforcedError:'Y',grade:'C',demon:'FOMO',emotion:'Anxious',chart:'',notes:'Entered too early, waited for confirmation'},
-    {id:_mid(),coin:'SOL',base:'USDT',status:'CLOSED',direction:'SHORT',size:12,entry:185,target:168,sl:192,exit:170,strategy:'Mean Reversion',trigger:'Overbought RSI + supply zone',setupGrade:'A',dateOpen:'2025-01-15',dateClose:'2025-01-19',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Calm',chart:'',notes:'Textbook supply zone rejection'},
-    {id:_mid(),coin:'BTC',base:'USDT',status:'CLOSED',direction:'LONG',size:0.12,entry:43500,target:48000,sl:41800,exit:47800,strategy:'Trend Continuation',trigger:'HTF breakout retest',setupGrade:'A',dateOpen:'2025-01-22',dateClose:'2025-01-30',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Confident',chart:'',notes:''},
-    // FEBRUARY
-    {id:_mid(),coin:'LINK',base:'USDT',status:'CLOSED',direction:'LONG',size:80,entry:14.2,target:17.0,sl:13.1,exit:13.05,strategy:'Structure Breakout',trigger:'Weekly level breakout',setupGrade:'B',dateOpen:'2025-02-03',dateClose:'2025-02-06',outcome:'Stop Hit',propShop:'N',unforcedError:'N',grade:'B',demon:'',emotion:'Neutral',chart:'',notes:'Market wide sell-off, not my fault'},
-    {id:_mid(),coin:'ETH',base:'USDT',status:'CLOSED',direction:'SHORT',size:3,entry:2680,target:2420,sl:2780,exit:2450,strategy:'Mean Reversion',trigger:'Bearish engulf at resistance',setupGrade:'A',dateOpen:'2025-02-10',dateClose:'2025-02-17',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Calm',chart:'',notes:''},
-    {id:_mid(),coin:'AAVE',base:'USDT',status:'CLOSED',direction:'LONG',size:15,entry:98,target:118,sl:91,exit:115,strategy:'Trend Continuation',trigger:'EMA cross + sector rotation',setupGrade:'B',dateOpen:'2025-02-12',dateClose:'2025-02-20',outcome:'In Profit (before target)',propShop:'Y',unforcedError:'N',grade:'B',demon:'',emotion:'Patient',chart:'',notes:'Took profit early, left some on table'},
-    {id:_mid(),coin:'SOL',base:'USDT',status:'CLOSED',direction:'LONG',size:10,entry:172,target:195,sl:163,exit:162,strategy:'Range Breakout',trigger:'Demand zone bounce',setupGrade:'C',dateOpen:'2025-02-24',dateClose:'2025-02-26',outcome:'Stop Hit',propShop:'N',unforcedError:'Y',grade:'D',demon:'Revenge',emotion:'Frustrated',chart:'',notes:'Revenge trade after LINK stop. Should not have taken this.'},
-    // MARCH
-    {id:_mid(),coin:'BTC',base:'USDT',status:'CLOSED',direction:'LONG',size:0.1,entry:56200,target:62000,sl:53800,exit:61500,strategy:'Trend Continuation',trigger:'All-time high breakout',setupGrade:'A',dateOpen:'2025-03-03',dateClose:'2025-03-14',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Confident',chart:'',notes:'ATH breakout, held through volatility'},
-    {id:_mid(),coin:'XRP',base:'USDT',status:'CLOSED',direction:'LONG',size:1200,entry:0.62,target:0.78,sl:0.57,exit:0.575,strategy:'Structure Breakout',trigger:'Pennant breakout',setupGrade:'B',dateOpen:'2025-03-08',dateClose:'2025-03-10',outcome:'Stop Hit',propShop:'N',unforcedError:'N',grade:'B',demon:'',emotion:'Neutral',chart:'',notes:'False breakout'},
-    {id:_mid(),coin:'ETH',base:'USDT',status:'CLOSED',direction:'LONG',size:2,entry:3100,target:3600,sl:2950,exit:3580,strategy:'Trend Continuation',trigger:'BTC led move, ETH lagging',setupGrade:'A',dateOpen:'2025-03-10',dateClose:'2025-03-20',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Calm',chart:'',notes:''},
-    {id:_mid(),coin:'SOL',base:'USDT',status:'CLOSED',direction:'SHORT',size:8,entry:198,target:178,sl:208,exit:182,strategy:'Mean Reversion',trigger:'RSI 80+ daily, key supply',setupGrade:'A',dateOpen:'2025-03-22',dateClose:'2025-03-27',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Calm',chart:'',notes:''},
-    // APRIL
-    {id:_mid(),coin:'BTC',base:'USDT',status:'CLOSED',direction:'SHORT',size:0.08,entry:68500,target:63000,sl:70500,exit:70600,strategy:'Mean Reversion',trigger:'Bearish divergence HTF',setupGrade:'B',dateOpen:'2025-04-01',dateClose:'2025-04-03',outcome:'Stop Hit',propShop:'Y',unforcedError:'Y',grade:'C',demon:'Overconfidence',emotion:'Overconfident',chart:'',notes:'Faded a bull trend. Bad idea.'},
-    {id:_mid(),coin:'LINK',base:'USDT',status:'CLOSED',direction:'LONG',size:100,entry:16.8,target:20.5,sl:15.6,exit:20.2,strategy:'Trend Continuation',trigger:'Sector breakout + EMA alignment',setupGrade:'A',dateOpen:'2025-04-08',dateClose:'2025-04-18',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Confident',chart:'',notes:''},
-    {id:_mid(),coin:'ETH',base:'USDT',status:'CLOSED',direction:'LONG',size:1.5,entry:3250,target:3700,sl:3100,exit:3690,strategy:'Trend Continuation',trigger:'ETH/BTC ratio breakout',setupGrade:'A',dateOpen:'2025-04-12',dateClose:'2025-04-22',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Patient',chart:'',notes:''},
-    // MAY
-    {id:_mid(),coin:'SOL',base:'USDT',status:'CLOSED',direction:'LONG',size:15,entry:165,target:195,sl:154,exit:155,strategy:'Range Breakout',trigger:'Weekly support retest',setupGrade:'B',dateOpen:'2025-05-05',dateClose:'2025-05-08',outcome:'Stop Hit',propShop:'N',unforcedError:'N',grade:'B',demon:'',emotion:'Neutral',chart:'',notes:'Support failed'},
-    {id:_mid(),coin:'BTC',base:'USDT',status:'CLOSED',direction:'LONG',size:0.1,entry:61000,target:68000,sl:58500,exit:67500,strategy:'Trend Continuation',trigger:'Monthly level reclaim',setupGrade:'A',dateOpen:'2025-05-12',dateClose:'2025-05-28',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Confident',chart:'',notes:'Held through the dip around 62k'},
-    {id:_mid(),coin:'AAVE',base:'USDT',status:'CLOSED',direction:'SHORT',size:20,entry:112,target:95,sl:120,exit:96,strategy:'Mean Reversion',trigger:'Distribution pattern + RSI',setupGrade:'B',dateOpen:'2025-05-20',dateClose:'2025-05-29',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'B',demon:'',emotion:'Calm',chart:'',notes:''},
-    // JUNE
-    {id:_mid(),coin:'XRP',base:'USDT',status:'CLOSED',direction:'LONG',size:2000,entry:0.52,target:0.65,sl:0.47,exit:0.46,strategy:'Structure Breakout',trigger:'HTF demand zone',setupGrade:'C',dateOpen:'2025-06-02',dateClose:'2025-06-04',outcome:'Stop Hit',propShop:'N',unforcedError:'Y',grade:'D',demon:'Impatience',emotion:'Bored',chart:'',notes:'Forced a trade on a slow day'},
-    {id:_mid(),coin:'ETH',base:'USDT',status:'CLOSED',direction:'LONG',size:2,entry:3480,target:3900,sl:3300,exit:3870,strategy:'Trend Continuation',trigger:'EMA cross on 4H',setupGrade:'A',dateOpen:'2025-06-10',dateClose:'2025-06-20',outcome:'Target Hit',propShop:'Y',unforcedError:'N',grade:'A',demon:'',emotion:'Confident',chart:'',notes:''},
-    // OPEN TRADES
-    {id:_mid(),coin:'BTC',base:'USDT',status:'OPEN',direction:'LONG',size:0.12,entry:67200,target:74000,sl:64800,exit:'',strategy:'Trend Continuation',trigger:'Weekly breakout retest',setupGrade:'A',dateOpen:'2025-06-28',dateClose:'',outcome:'',propShop:'Y',unforcedError:'',grade:'',demon:'',emotion:'Confident',chart:'',notes:'Watching 68.5k as first target'},
-    {id:_mid(),coin:'SOL',base:'USDT',status:'OPEN',direction:'LONG',size:20,entry:148,target:175,sl:139,exit:'',strategy:'Mean Reversion',trigger:'Oversold bounce + demand zone',setupGrade:'B',dateOpen:'2025-07-01',dateClose:'',outcome:'',propShop:'N',unforcedError:'',grade:'',demon:'',emotion:'Patient',chart:'',notes:''},
-  ];
-}
 let pieChart, barChart, eqChart;
 let pnlMode   = 'stacked';
 let editIdx   = null;
@@ -909,6 +1019,14 @@ async function fsWrite(){
     await writable.write(buildSnapshot());
     await writable.close();
     _fileSaveQueued=false;
+    // Flash the file button green briefly
+    const btn=document.getElementById('fileBtn');
+    if(btn){
+      const prev=btn.innerHTML;
+      btn.innerHTML='⬡ SAVED ✓';btn.style.color='var(--g)';
+      clearTimeout(btn._flashTimer);
+      btn._flashTimer=setTimeout(()=>{btn.innerHTML=prev;btn.style.color='var(--g)';},1200);
+    }
     return true;
   }catch(e){
     console.warn('fsWrite failed:',e);
@@ -969,8 +1087,19 @@ function setFileStatus(state,name){
 
 async function lsSave(){
   lsRawSave(); // always write localStorage first (instant)
-  await fsWrite(); // then write file (async, non-blocking)
+  _pendingWrite=true;
+  await fsWrite();
+  _pendingWrite=false;
 }
+
+// Warn before closing tab if a write is in progress
+let _pendingWrite=false;
+window.addEventListener('beforeunload',e=>{
+  if(_pendingWrite||_fileSaving){
+    e.preventDefault();
+    e.returnValue='A save is in progress. Are you sure you want to leave?';
+  }
+});
 
 // ── File picker helpers ──
 async function fsPickNew(){
@@ -1479,19 +1608,27 @@ function calcEMA(arr,p){
   for(let i=p;i<arr.length;i++)v=arr[i]*k+v*(1-k);return v;
 }
 async function fetchKlines(sym){
-  let closes=[],vols=[];
+  let closes=[],vols=[],rawKlines=[];
   try{
     const r=await fetch('https://api.binance.com/api/v3/klines?symbol='+(BSYM[sym]||(sym+'USDT'))+'&interval=1d&limit=220',{signal:AbortSignal.timeout(12000)});
     if(!r.ok)throw new Error();
-    const d=await r.json();closes=d.map(k=>parseFloat(k[4]));vols=d.map(k=>parseFloat(k[5]));
+    const d=await r.json();
+    closes=d.map(k=>parseFloat(k[4]));
+    vols=d.map(k=>parseFloat(k[5]));
+    rawKlines=d.map(k=>({ts:k[0],close:parseFloat(k[4])}));
   }catch(e){
     try{
       const r=await fetch('https://api.coingecko.com/api/v3/coins/'+(CGIDS[sym]||sym.toLowerCase())+'/market_chart?vs_currency=usd&days=220&interval=daily',{signal:AbortSignal.timeout(12000)});
       if(!r.ok)throw new Error();
-      const d=await r.json();closes=d.prices.map(p=>p[1]);vols=d.total_volumes?d.total_volumes.map(p=>p[1]):[];
+      const d=await r.json();
+      closes=d.prices.map(p=>p[1]);
+      vols=d.total_volumes?d.total_volumes.map(p=>p[1]):[];
+      rawKlines=d.prices.map(p=>({ts:p[0],close:p[1]}));
     }catch(e2){return null;}
   }
   if(closes.length<20)return null;
+  // Store raw klines for HWM calculation
+  signals['_klines_'+sym]=rawKlines;
   const e9=calcEMA(closes,9),e21=calcEMA(closes,21),e50=calcEMA(closes,50),e100=calcEMA(closes,100),e200=calcEMA(closes,200);
   // Per-coin drawdown from klines history
   let coinMaxDDp=null,coinCurDDp=null;
@@ -1575,7 +1712,20 @@ function render(){
     const dv=(val&&chg)?val*(chg/(100+chg)):null;
     const sig=signals[g.sym];
     const curDD=cur!=null&&g.avgBuy>0?(cur-g.avgBuy)/g.avgBuy*100:null;
-    return{...g,cur,chg,val,cost,pnl,pnlp,dv,wt:0,curDD};
+    // HWM DD: peak price since earliest entry date for this symbol
+    let hwmDD=null;
+    if(cur!=null){
+      const rawKlines=signals['_klines_'+g.sym]||[];
+      if(rawKlines.length){
+        const addEvents=history.filter(h=>h.action==='ADD'&&(h.sym||'').toUpperCase()===g.sym&&h.ts);
+        const earliestTs=addEvents.length?Math.min(...addEvents.map(h=>h.ts)):0;
+        const filtered=earliestTs>0?rawKlines.filter(k=>k.ts>=earliestTs):rawKlines;
+        const klinesToUse=filtered.length?filtered:rawKlines;
+        const hwm=Math.max(...klinesToUse.map(k=>k.close),cur);
+        if(hwm>0)hwmDD=(hwm-cur)/hwm*100;
+      }
+    }
+    return{...g,cur,chg,val,cost,pnl,pnlp,dv,wt:0,curDD,hwmDD};
   });
   const tw=rows.reduce((s,r)=>s+(r.val||0),0);
   rows.forEach(r=>{r.wt=tw>0&&r.val!=null?r.val/tw*100:0;});
@@ -1592,6 +1742,7 @@ function render(){
       if(sortCol==='pnlp')return r.pnlp??-Infinity;
       if(sortCol==='wt')return r.wt;
       if(sortCol==='curDD')return r.curDD??-Infinity;
+      if(sortCol==='hwmDD')return r.hwmDD??-Infinity;
       return 0;
     };
     rows.sort((a,b)=>{
@@ -1638,7 +1789,7 @@ function render(){
       <td class="${fc(r.pnlp)}">${r.pnlp!=null?fp(r.pnlp):'—'}</td>
       <td><div class="wr"><span class="wp" style="color:var(--or)">${r.wt.toFixed(1)}%</span><div class="wb"><div class="wf" style="width:${Math.min(r.wt*2,100)}%;background:var(--or)"></div></div></div></td>
       <td title="${tip}">${r.sym==='USD'?'<span style="font-size:9px;color:#666;letter-spacing:.08em">CASH · no EMAs</span>':`<div class="ecell"><div class="edots">${dots.map(d=>`<div class="ed ${d.c}"></div>`).join('')}</div><div class="elbl">${dots.map(d=>`<span>${d.l}</span>`).join('')}</div></div>`}</td>
-      <td class="${r.curDD==null?'ne':r.curDD>=0?'up':'dn'}">${r.sym==='USD'?'—':r.curDD!=null?(r.curDD>=0?'+':'')+r.curDD.toFixed(2)+'%':'—'}</td>
+      <td class="${r.hwmDD==null?'ne':r.hwmDD>20?'dn':r.hwmDD>5?'up':'ne'}">${r.sym==='USD'?'—':r.hwmDD!=null?'-'+r.hwmDD.toFixed(2)+'%':'—'}</td>
       <td class="note-cell" data-note-sym="${r.sym}">${(()=>{
         // Show first non-empty note across lots, or a count badge if multiple
         const withNotes=r.lots.filter(l=>l.note&&l.note.trim());
@@ -1718,7 +1869,7 @@ window.saveNote=function(lotId,val){
         cell.innerHTML='<span class="note-text" title="'+preview.replace(/"/g,'&quot;')+'" onclick="focusFirstLotNote(\''+sym+'\')">'+preview.slice(0,22)+(preview.length>22?'…':'')+badge+'</span>';
       }
     }
-  },500);
+  },200);
 };
 
 window.focusFirstLotNote=function(sym){
@@ -1821,9 +1972,8 @@ document.getElementById('chartModal').addEventListener('click',e=>{
 });
 
 // ═══ DRAWDOWN ═══
-function calcDrawdowns(){
-  // uses equity[] snapshots to compute max DD and current DD
-  const vals=equity.map(e=>e.value);
+function calcDrawdowns(valsIn){
+  const vals=valsIn||equity.map(e=>e.value);
   if(vals.length<2)return{maxDD:null,maxDDp:null,curDD:null,curDDp:null};
   let peak=vals[0],maxDD=0,maxDDp=0;
   vals.forEach(v=>{if(v>peak)peak=v;const dd=peak-v;const ddp=peak>0?dd/peak*100:0;if(ddp>maxDDp){maxDD=dd;maxDDp=ddp;}});
@@ -1983,13 +2133,30 @@ function renderSignals(){
 }
 
 // ═══ EQUITY CURVE ═══
+let _eqTf='all';
+window.setEqTf=function(tf,btn){
+  _eqTf=tf;
+  document.querySelectorAll('.eq-tf-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  rebuildEqChart();
+};
+
 function rebuildEqChart(){
   if(!equity.length)return;
-  const vals=equity.map(p=>p.value);
-  const labels=equity.map(p=>{
+  const now=Date.now();
+  let cutoff=0;
+  if(_eqTf==='1w')cutoff=now-7*86400000;
+  else if(_eqTf==='1m')cutoff=now-30*86400000;
+  else if(_eqTf==='3m')cutoff=now-90*86400000;
+  else if(_eqTf==='6m')cutoff=now-180*86400000;
+  else if(_eqTf==='ytd')cutoff=new Date(new Date().getFullYear(),0,1).getTime();
+  const filtered=cutoff>0?equity.filter(p=>p.ts>=cutoff):equity;
+  const pts=filtered.length?filtered:equity;
+  const vals=pts.map(p=>p.value);
+  const labels=pts.map(p=>{
     const d=new Date(p.ts);
-    if(equity.length>90)return d.toLocaleDateString('en-US',{month:'short',year:'2-digit'});
-    if(equity.length>14)return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    if(pts.length>90)return d.toLocaleDateString('en-US',{month:'short',year:'2-digit'});
+    if(pts.length>14)return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
     return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
   });
   const start=vals[0],end=vals[vals.length-1];
@@ -1998,8 +2165,8 @@ function rebuildEqChart(){
   document.getElementById('eq-now').textContent=fm(end);
   document.getElementById('eq-ret').textContent=(ret>=0?'+':'')+ret.toFixed(2)+'%';
   document.getElementById('eq-ret').style.color=ret>=0?'var(--g)':'var(--r)';
-  document.getElementById('eq-pts').textContent=equity.length;
-  const dd=calcDrawdowns();
+  document.getElementById('eq-pts').textContent=pts.length+(pts.length<equity.length?' / '+equity.length:'');
+  const dd=calcDrawdowns(vals);
   const mddEl=document.getElementById('eq-mdd');
   if(mddEl)mddEl.textContent=dd.maxDDp>0?'-'+dd.maxDDp.toFixed(2)+'%':'—';
   if(eqChart)eqChart.destroy();
@@ -2008,13 +2175,14 @@ function rebuildEqChart(){
     type:'line',
     data:{labels,datasets:[{data:vals,borderColor:lineColor,borderWidth:1.5,pointRadius:0,pointBackgroundColor:lineColor,tension:0.2,fill:true,backgroundColor:ret>=0?'rgba(0,230,57,.06)':'rgba(255,26,46,.06)'}]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${fm(c.raw)}`,title:t=>{const d=new Date(equity[t[0].dataIndex].ts);return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}}}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${fm(c.raw)}`,title:t=>{const d=new Date(pts[t[0].dataIndex].ts);return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}}}},
       scales:{
         x:{ticks:{color:'#777',font:{size:8,family:"'IBM Plex Mono'"},maxTicksLimit:10,maxRotation:0},grid:{color:'rgba(255,255,255,.03)'}},
-        y:{ticks:{color:'#777',font:{size:9,family:"'IBM Plex Mono'"},callback:v=>{const av=Math.abs(v);return(v<0?'-':'')+( av>=1000?'$'+Math.round(av/1000)+'k':'$'+Math.round(av));}},grid:{color:'rgba(255,255,255,.04)'}}
+        y:{ticks:{color:'#777',font:{size:9,family:"'IBM Plex Mono'"},callback:v=>{const av=Math.abs(v);return(v<0?'-':'')+(av>=1000?'$'+Math.round(av/1000)+'k':'$'+Math.round(av));}},grid:{color:'rgba(255,255,255,.04)'}}
       }}
   });
 }
+
 
 // ═══ HISTORY ═══
 function logHistory(action,sym,detail,meta){
@@ -2391,35 +2559,137 @@ window.saveEdit=async function(id){
 };
 
 // ═══ CSV EXPORT ═══
+// ── Simple ZIP builder (no external lib needed for 2 files) ──
+function buildZip(files){
+  // Files: [{name, content (string)}]
+  // Returns Uint8Array of a valid ZIP
+  function crc32(buf){
+    let c=0xFFFFFFFF;
+    const t=new Uint32Array(256);
+    for(let i=0;i<256;i++){let v=i;for(let j=0;j<8;j++)v=v&1?0xEDB88320^(v>>>1):v>>>1;t[i]=v;}
+    for(let i=0;i<buf.length;i++)c=t[(c^buf[i])&0xFF]^(c>>>8);
+    return(c^0xFFFFFFFF)>>>0;
+  }
+  function u32(n){const b=new Uint8Array(4);new DataView(b.buffer).setUint32(0,n,true);return b;}
+  function u16(n){const b=new Uint8Array(2);new DataView(b.buffer).setUint16(0,n,true);return b;}
+  function str(s){return new TextEncoder().encode(s);}
+  function concat(...arrs){const t=arrs.reduce((s,a)=>s+a.length,0);const r=new Uint8Array(t);let o=0;arrs.forEach(a=>{r.set(a,o);o+=a.length;});return r;}
+
+  const now=new Date();
+  const dosDate=((now.getFullYear()-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate();
+  const dosTime=(now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1);
+
+  const localHeaders=[];
+  const centralHeaders=[];
+  let offset=0;
+
+  for(const f of files){
+    const nameBytes=str(f.name);
+    const data=new TextEncoder().encode(f.content);
+    const crc=crc32(data);
+    const local=concat(
+      new Uint8Array([0x50,0x4B,0x03,0x04]),// sig
+      u16(20),u16(0),u16(0),// version, flags, method (stored)
+      u16(dosTime),u16(dosDate),
+      u32(crc),u32(data.length),u32(data.length),
+      u16(nameBytes.length),u16(0),
+      nameBytes,data
+    );
+    localHeaders.push({local,nameBytes,crc,size:data.length,offset});
+    offset+=local.length;
+
+    const central=concat(
+      new Uint8Array([0x50,0x4B,0x01,0x02]),
+      u16(20),u16(20),u16(0),u16(0),
+      u16(dosTime),u16(dosDate),
+      u32(crc),u32(data.length),u32(data.length),
+      u16(nameBytes.length),u16(0),u16(0),u16(0),u16(0),u32(0),
+      u32(localHeaders[localHeaders.length-1].offset),
+      nameBytes
+    );
+    centralHeaders.push(central);
+  }
+
+  const centralStart=offset;
+  const centralSize=centralHeaders.reduce((s,c)=>s+c.length,0);
+  const eocd=concat(
+    new Uint8Array([0x50,0x4B,0x05,0x06]),
+    u16(0),u16(0),
+    u16(files.length),u16(files.length),
+    u32(centralSize),u32(centralStart),
+    u16(0)
+  );
+  return concat(...localHeaders.map(h=>h.local),...centralHeaders,eocd);
+}
+
 window.exportCSV=function(){
-  if(!portfolio.length){alert('No positions');return;}
-  const groups=aggregateBySym();const tv=groups.reduce((s,g)=>{const p=prices[g.sym];return s+(p?p.usd*g.totalAmt:0);},0);
-  let csv='PORTFOLIO TERMINAL EXPORT\nGenerated: '+new Date().toISOString()+'\n\n=== POSITIONS ===\nSymbol,Amount,Avg Buy,Price,Value,P&L,P&L%,Weight%\n';
-  groups.forEach(g=>{const px=prices[g.sym];const cur=px?px.usd:null;const val=cur?cur*g.totalAmt:null;const pnl=val?val-g.totalCost:null;const pnlp=pnl?pnl/g.totalCost*100:null;const wt=tv>0&&val?val/tv*100:null;csv+=`${g.sym},${g.totalAmt},${g.avgBuy.toFixed(2)},${cur??''},${val?val.toFixed(2):''},${pnl?pnl.toFixed(2):''},${pnlp?pnlp.toFixed(2):''},${wt?wt.toFixed(2):''}\n`;});
-  csv+='\n=== REALIZED TRADES ===\nDate,Symbol,Qty,Buy,Sell,P&L,P&L%\n';
-  realized.forEach(t=>{csv+=`${new Date(t.ts).toISOString().slice(0,19)},${t.sym},${t.qty},${t.buyPrice.toFixed(2)},${t.sellPrice.toFixed(2)},${t.pnl.toFixed(2)},${t.pnlPct.toFixed(2)}\n`;});
-  csv+='\n=== EQUITY SNAPSHOTS ===\nTimestamp,Portfolio Value\n';
-  equity.forEach(e=>{csv+=`${new Date(e.ts).toISOString().slice(0,19)},${e.value.toFixed(2)}\n`;});
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='portfolio_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setSt('CSV EXPORTED ✓');
+  if(!portfolio.length&&!trades.length){alert('No data to export');return;}
+  // Portfolio CSV
+  const groups=aggregateBySym();
+  const tv=groups.reduce((s,g)=>{const p=prices[g.sym];return s+(p?p.usd*g.totalAmt:0);},0);
+  let pCsv='Symbol,Amount,Avg Buy,Price,Value,P&L,P&L%,Weight%\n';
+  groups.forEach(g=>{
+    const px=prices[g.sym];const cur=px?px.usd:null;const val=cur?cur*g.totalAmt:null;
+    const pnl=val?val-g.totalCost:null;const pnlp=pnl&&g.totalCost?pnl/g.totalCost*100:null;
+    const wt=tv>0&&val?val/tv*100:null;
+    pCsv+=`${g.sym},${g.totalAmt},${g.avgBuy.toFixed(2)},${cur??''},${val?val.toFixed(2):''},${pnl?pnl.toFixed(2):''},${pnlp?pnlp.toFixed(2):''},${wt?wt.toFixed(2):''}\n`;
+  });
+
+  // Trades CSV
+  const tHeaders=['#','COIN','BASE','STATUS','DIRECTION','SIZE_COIN','SIZE_USD','ENTRY','TARGET','SL','EXIT','PNL','PNL%','PNL_USD','REAL_RR','EXP_RR','RISK%','REWARD%','POT_LOSS','STRATEGY','TRIGGER','SETUP_GRADE','GRADE','DATE_OPEN','DATE_CLOSE','OUTCOME','PROP_SHOP','UNFORCED_ERR','DEMON','EMOTION','NOTES','LEGACY'];
+  let tCsv=tHeaders.join(',')+'\n';
+  trades.forEach((t,i)=>{
+    const c=tjCalc(t);
+    const row=[
+      i+1,t.coin||'',t.base||'',t.status||'',t.direction||'',
+      t.size||'',t.sizeUsd||'',t.entry||'',t.target||'',t.sl||'',t.exit||'',
+      c.pnl!=null?c.pnl.toFixed(4):'',c.pnlPct!=null?c.pnlPct.toFixed(2):'',
+      t.pnlUsd!=null?t.pnlUsd.toFixed(2):'',
+      c.realRR!=null?c.realRR.toFixed(3):'',c.expRR!=null?c.expRR.toFixed(3):'',
+      c.riskPct!=null?c.riskPct.toFixed(2):'',c.rewardPct!=null?c.rewardPct.toFixed(2):'',
+      c.potLoss!=null?c.potLoss.toFixed(2):'',
+      `"${(t.strategy||'').replace(/"/g,'""')}"`,
+      `"${(t.trigger||'').replace(/"/g,'""')}"`,
+      t.setupGrade||'',t.grade||'',
+      t.dateOpen||'',t.dateClose||'',t.outcome||'',
+      t.propShop||'',t.unforcedError||'',
+      `"${(t.demon||'').replace(/"/g,'""')}"`,
+      `"${(t.emotion||'').replace(/"/g,'""')}"`,
+      `"${(t.notes||'').replace(/"/g,'""')}"`,
+      t.legacy?'YES':'NO'
+    ];
+    tCsv+=row.join(',')+'\n';
+  });
+
+  const zip=buildZip([
+    {name:'portfolio_'+new Date().toISOString().slice(0,10)+'.csv',content:pCsv},
+    {name:'trades_'+new Date().toISOString().slice(0,10)+'.csv',content:tCsv}
+  ]);
+  const blob=new Blob([zip],{type:'application/zip'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='portfolio_export_'+new Date().toISOString().slice(0,10)+'.zip';
+  a.click();
+  setSt('CSV EXPORT ✓ — ZIP with portfolio + trades');
 };
 
-// ═══ JSON BACKUP / RESTORE ═══
 window.exportJSON=function(){
-  const backup={
-    version:2,
-    exported:new Date().toISOString(),
-    portfolio,
-    history,
-    realized,
-    equity
-  };
+  document.getElementById('exportModal').classList.add('on');
+};
+window.closeExportModal=function(){
+  document.getElementById('exportModal').classList.remove('on');
+};
+window.doExportJSON=function(mode){
+  closeExportModal();
+  const backup={version:3,exported:new Date().toISOString(),portfolio,history,realized,equity,trades};
   const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download='portfolio_backup_'+new Date().toISOString().slice(0,10)+'.json';
+  a.download=mode==='save'?'portfolio_data.json':'portfolio_'+new Date().toISOString().slice(0,10)+'.json';
   a.click();
-  setSt('EXPORTED ✓ — '+a.download);
+  setSt(mode==='save'?'SAVED → portfolio_data.json ✓':'SNAPSHOT SAVED → '+a.download+' ✓');
 };
+document.getElementById('exportModal').addEventListener('click',e=>{if(e.target===document.getElementById('exportModal'))closeExportModal();});
 
 window.importJSON=function(){
   document.getElementById('jsonImportInput').value='';
@@ -2427,41 +2697,42 @@ window.importJSON=function(){
 };
 
 window.handleImport=function(evt){
-  const file=evt.target.files[0];
-  if(!file)return;
+  const file=evt.target.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=function(e){
     try{
       const d=JSON.parse(e.target.result);
-      // Validate structure
+      // ── Legacy merge detection ──
+      if(d.source==='legacy_importer'&&d.trades&&d.trades.some(t=>t.legacy)){
+        const incoming=d.trades.filter(t=>t.legacy===true);
+        const existing=new Set(trades.map(t=>[t.coin,t.dateOpen,t.dateClose,t.entry,t.exit].join('|')));
+        const toAdd=incoming.filter(t=>!existing.has([t.coin,t.dateOpen,t.dateClose,t.entry,t.exit].join('|')));
+        const dupes=incoming.length-toAdd.length;
+        if(!confirm(`Merge ${toAdd.length} legacy trades into your journal?`+(dupes?`\n(${dupes} duplicates skipped)`:'')))return;
+        trades=[...trades,...toAdd];
+        lsSave();renderTrades();
+        setSt(`✓ Merged ${toAdd.length} legacy trades`+(dupes?` · ${dupes} dupes skipped`:''));
+        return;
+      }
+      // ── Normal restore ──
       if(!d.portfolio||!Array.isArray(d.portfolio))throw new Error('Invalid backup: missing portfolio array');
       const posCount=d.portfolio.length;
-      const tradeCount=(d.realized||[]).length;
+      const realizedCount=(d.realized||[]).length;
+      const tradesCount=(d.trades||[]).length;
       const eqCount=(d.equity||[]).length;
-      const msg=`Import backup from ${d.exported?d.exported.slice(0,10):'unknown date'}?
-
-`+
-        `  ${posCount} lot${posCount!==1?'s':''}
-`+
-        `  ${tradeCount} realized trade${tradeCount!==1?'s':''}
-`+
-        `  ${eqCount} equity snapshot${eqCount!==1?'s':''}
-
-`+
+      const msg=`Restore backup from ${d.exported?d.exported.slice(0,10):'unknown date'}?\n\n`+
+        `  ${posCount} lot${posCount!==1?'s':''}\n`+
+        `  ${realizedCount} realized trade${realizedCount!==1?'s':''}\n`+
+        `  ${tradesCount} journal trade${tradesCount!==1?'s':''}\n`+
+        `  ${eqCount} equity snapshot${eqCount!==1?'s':''}\n\n`+
         `This will REPLACE your current data.`;
       if(!confirm(msg))return;
-      // Migrate lots without id
       portfolio=(d.portfolio||[]).map(p=>p.id?p:{...p,id:mkId()});
-      history=d.history||[];
-      realized=d.realized||[];
-      equity=d.equity||[];
+      history=d.history||[];realized=d.realized||[];equity=d.equity||[];trades=d.trades||[];
       emas={};signals={};
-      lsSave();
-      renderHistory();renderRealized();render();rebuildEqChart();
-      setSt('RESTORED '+posCount+' lots from backup ✓');
-    }catch(err){
-      alert('Failed to import: '+err.message);
-    }
+      lsSave();renderHistory();renderRealized();render();rebuildEqChart();
+      setSt('RESTORED '+posCount+' lots ✓');
+    }catch(err){alert('Failed to import: '+err.message);}
   };
   reader.readAsText(file);
 };
@@ -2496,12 +2767,167 @@ window.switchMainTab=function(tab){
     document.getElementById('tab-'+t).classList.toggle('on',t===tab);
   });
   if(tab==='trades')renderTrades();
-  if(tab==='dash'){populateDashYears();renderDashboard();}
+  if(tab==='dash'){renderDashboard();}
 };
 
-// ═══ TRADES JOURNAL ═══
+// ═══ LEGACY TRADES ═══
+let _showLegacy=true;
+// Set initial button state after DOM loads
+document.addEventListener('DOMContentLoaded',()=>{
+  const btn=document.getElementById('legacyToggleBtn');
+  if(btn){btn.style.borderColor='var(--or)';btn.style.color='var(--or)';btn.style.background='var(--org)';btn.textContent='⊠ LEGACY';}
+});
+
+window.toggleLegacy=function(){
+  _showLegacy=!_showLegacy;
+  const btn=document.getElementById('legacyToggleBtn');
+  if(btn){
+    btn.style.borderColor=_showLegacy?'var(--or)':'var(--mu2)';
+    btn.style.color=_showLegacy?'var(--or)':'var(--mu)';
+    btn.style.background=_showLegacy?'var(--org)':'';
+    btn.textContent=_showLegacy?'⊠ LEGACY':'⊡ LEGACY';
+  }
+  renderTrades();
+};
+
+const TJ_MS_STATE={
+  status:new Set(['OPEN','CLOSED','REVIEW']),
+  dir:new Set(['LONG','SHORT']),
+  grade:new Set(['A','B','C','D','']),
+  outcome:new Set(['Target Hit','Stop Hit','Break Even','In Profit (before target)','Before Stop','Under Stop','']),
+  coin:new Set(),
+  strategy:new Set(),
+  trigger:new Set(),
+  demon:new Set(),
+  emotion:new Set(),
+};
+// Dynamic field options (all = null means show all)
+const TJ_DYN_ALL=new Set(['strategy','trigger','demon','emotion','coin']);
+let _tjCoinOptions=new Set();
+
+function tjUpdateCoinOptions(){
+  const allCoins=[...new Set(trades.map(t=>(t.coin||'').toUpperCase()).filter(Boolean))].sort();
+  allCoins.forEach(c=>{if(!_tjCoinOptions.has(c)){_tjCoinOptions.add(c);TJ_MS_STATE.coin.add(c);}});
+  [..._tjCoinOptions].forEach(c=>{if(!allCoins.includes(c)){_tjCoinOptions.delete(c);TJ_MS_STATE.coin.delete(c);}});
+  tjRenderCoinList('');
+  // Update dynamic filters
+  ['strategy','trigger','demon','emotion'].forEach(f=>tjUpdateDynFilter(f));
+}
+
+function tjUpdateDynFilter(field){
+  const vals=[...new Set(trades.map(t=>(t[field]||'').trim()).filter(Boolean))].sort();
+  // Add new values to state
+  vals.forEach(v=>{if(!TJ_MS_STATE[field].has(v))TJ_MS_STATE[field].add(v);});
+  // Add empty option
+  TJ_MS_STATE[field].add('');
+  tjRenderDynList(field,'');
+}
+
+function tjRenderDynList(field,search){
+  const listEl=document.getElementById('ms-'+field+'-list');if(!listEl)return;
+  const vals=[...new Set(trades.map(t=>(t[field]||'').trim()))].sort();
+  const filtered=vals.filter(v=>v.toLowerCase().includes(search.toLowerCase()));
+  listEl.innerHTML=filtered.map(v=>`<label class="tj-ms-option"><input type="checkbox" value="${v.replace(/"/g,'&quot;')}" ${TJ_MS_STATE[field].has(v)?'checked':''} onchange="tjMsChange('${field}')"> ${v||'(none)'}</label>`).join('');
+}
+
+window.tjDynSearch=function(field,val){tjRenderDynList(field,val);};
+
+function tjRenderCoinList(search){
+  const list=document.getElementById('ms-coin-list');if(!list)return;
+  const filtered=[..._tjCoinOptions].filter(c=>c.toLowerCase().includes(search.toLowerCase()));
+  list.innerHTML=filtered.map(c=>`<label class="tj-ms-option"><input type="checkbox" value="${c}" ${TJ_MS_STATE.coin.has(c)?'checked':''} onchange="tjMsChange('coin')"> ${c}</label>`).join('');
+}
+
+window.tjCoinSearch=function(val){tjRenderCoinList(val);};
+
+window.tjToggleMs=function(key){
+  const dd=document.getElementById('ms-'+key+'-dd');
+  const isOpen=dd.classList.contains('open');
+  document.querySelectorAll('.tj-ms-dropdown').forEach(d=>d.classList.remove('open'));
+  if(!isOpen){
+    if(key==='coin')tjUpdateCoinOptions();
+    else if(['strategy','trigger','demon','emotion'].includes(key)){tjUpdateDynFilter(key);tjRenderDynList(key,'');}
+    dd.classList.add('open');
+  }
+};
+
+// Close dropdowns when clicking outside
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.tj-ms-wrap'))
+    document.querySelectorAll('.tj-ms-dropdown').forEach(d=>d.classList.remove('open'));
+});
+
+window.tjMsChange=function(key){
+  const dd=document.getElementById('ms-'+key+'-dd');
+  const boxes=dd.querySelectorAll('input[type=checkbox]');
+  TJ_MS_STATE[key]=new Set([...boxes].filter(b=>b.checked).map(b=>b.value));
+  // Update button style
+  const btn=document.querySelector('#ms-'+key+' .tj-ms-btn');
+  const allVals=[...boxes].map(b=>b.value);
+  const allChecked=allVals.every(v=>TJ_MS_STATE[key].has(v));
+  btn.classList.toggle('filtered',!allChecked);
+  renderTrades();
+};
+
+window.tjMsAll=function(key){
+  const dd=document.getElementById('ms-'+key+'-dd');
+  const boxes=dd.querySelectorAll('input[type=checkbox]');
+  const allChecked=[...boxes].every(b=>b.checked);
+  boxes.forEach(b=>{b.checked=!allChecked;});
+  tjMsChange(key);
+};
 const TJ_OUTCOMES=['Target Hit','Stop Hit','Break Even','In Profit (before target)','Before Stop','Under Stop'];
-let _dashDirFilter='all', _dashGradeFilter='all';
+let _dashDirFilter='all', _dashGradeFilter='all', _dashPeriod='all', _dashLegacyFilter='all';
+
+window.dashLegacyFilter=function(f,btn){
+  _dashLegacyFilter=f;
+  document.querySelectorAll('.dash-filter-bar .dash-filter-btn').forEach(b=>{
+    if(['ALL','EXCL.','ONLY'].includes(b.textContent.trim()))b.classList.remove('on');
+  });
+  btn.classList.add('on');
+  renderDashboard();
+};
+
+function dashPeriodDateRange(){
+  const now=new Date();
+  const today=now.toISOString().slice(0,10);
+  switch(_dashPeriod){
+    case 'wtd':{
+      const d=new Date(now);d.setDate(d.getDate()-d.getDay()+(d.getDay()===0?-6:1));
+      return{from:d.toISOString().slice(0,10),to:today};
+    }
+    case 'l7':{
+      const d=new Date(now);d.setDate(d.getDate()-7);
+      return{from:d.toISOString().slice(0,10),to:today};
+    }
+    case 'mtd':{
+      return{from:now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01',to:today};
+    }
+    case 'l30':{
+      const d=new Date(now);d.setDate(d.getDate()-30);
+      return{from:d.toISOString().slice(0,10),to:today};
+    }
+    case 'ytd':{
+      return{from:now.getFullYear()+'-01-01',to:today};
+    }
+    case 'custom':{
+      return{
+        from:document.getElementById('dashDateFrom')?.value||'',
+        to:document.getElementById('dashDateTo')?.value||today
+      };
+    }
+    default:return null;
+  }
+}
+
+window.dashSetPeriod=function(period,btn){
+  _dashPeriod=period;
+  document.querySelectorAll('.dash-period-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const custom=document.getElementById('dashCustomDates');
+  if(custom)custom.classList.toggle('show',period==='custom');
+  renderDashboard();
+};
 let _pnlGrouping='strategy';
 let dashEqChart,dashPnlChart,dashDistChart,dashStreakChart;
 
@@ -2578,6 +3004,23 @@ window.tjPickAC=function(inpId,field,tid,val){
 window.tjFieldChange=function(id,field,value){
   const t=trades.find(x=>x.id===id);if(!t)return;
   t[field]=value;
+
+  // ── Auto-calc size ↔ sizeUsd from entry price ──
+  const entry=parseFloat(t.entry)||0;
+  if(field==='size'&&entry){
+    const sz=parseFloat(value)||0;
+    if(sz>0){t.sizeUsd=parseFloat((sz*entry).toFixed(2));const el=document.getElementById('tj_sizeUsd_'+id);if(el)el.value=t.sizeUsd;}
+  }else if(field==='sizeUsd'&&entry){
+    const su=parseFloat(value)||0;
+    if(su>0){t.size=parseFloat((su/entry).toFixed(8));const el=document.getElementById('tj_size_'+id);if(el)el.value=t.size;}
+  }else if(field==='entry'){
+    // Recalc the other size from whichever was set last
+    const sz=parseFloat(t.size)||0;
+    const su=parseFloat(t.sizeUsd)||0;
+    if(entry>0&&sz>0&&!su){t.sizeUsd=parseFloat((sz*entry).toFixed(2));const el=document.getElementById('tj_sizeUsd_'+id);if(el)el.value=t.sizeUsd;}
+    else if(entry>0&&su>0&&!sz){t.size=parseFloat((su/entry).toFixed(8));const el=document.getElementById('tj_size_'+id);if(el)el.value=t.size;}
+    else if(entry>0&&sz>0){t.sizeUsd=parseFloat((sz*entry).toFixed(2));const el=document.getElementById('tj_sizeUsd_'+id);if(el)el.value=t.sizeUsd;}
+  }
   // Recalc derived fields and update cells
   const c=tjCalc(t);
   const setCell=(cellId,val)=>{const el=document.getElementById(cellId);if(el)el.textContent=val;};
@@ -2593,7 +3036,7 @@ window.tjFieldChange=function(id,field,value){
   if(pnlEl&&c.pnl!=null)pnlEl.className=c.pnl>0?'tj-pnl-pos':c.pnl<0?'tj-pnl-neg':'tj-pnl-zero';
   // Debounce save
   clearTimeout(t._saveTimer);
-  t._saveTimer=setTimeout(()=>{delete t._saveTimer;lsSave();},500);
+  t._saveTimer=setTimeout(()=>{delete t._saveTimer;lsSave();},200);
 };
 
 function tjSelCell(tid,field,options,current){
@@ -2603,39 +3046,55 @@ function tjSelCell(tid,field,options,current){
 }
 
 function renderTrades(){
+  tjUpdateCoinOptions();
   const body=document.getElementById('tjBody');if(!body)return;
-  const fStatus=document.getElementById('tjFilterStatus')?.value||'';
-  const fDir=document.getElementById('tjFilterDir')?.value||'';
-  const fGrade=document.getElementById('tjFilterGrade')?.value||'';
   const fSearch=(document.getElementById('tjSearch')?.value||'').toLowerCase();
 
   let filtered=trades.filter(t=>{
-    if(fStatus&&t.status!==fStatus)return false;
-    if(fDir&&t.direction!==fDir)return false;
-    if(fGrade&&t.setupGrade!==fGrade)return false;
+    if(TJ_MS_STATE.status.size&&![...TJ_MS_STATE.status].includes(t.status||'OPEN'))return false;
+    if(TJ_MS_STATE.dir.size&&![...TJ_MS_STATE.dir].includes(t.direction||''))return false;
+    if(TJ_MS_STATE.grade.size&&![...TJ_MS_STATE.grade].includes(t.setupGrade||''))return false;
+    if(TJ_MS_STATE.outcome.size&&![...TJ_MS_STATE.outcome].includes(t.outcome||''))return false;
+    if(_tjCoinOptions.size&&TJ_MS_STATE.coin.size&&(t.coin||'')!==''&&![...TJ_MS_STATE.coin].includes((t.coin||'').toUpperCase()))return false;
+    // Dynamic filters — only apply if user has interacted (size < all options)
+    const allStrats=[...new Set(trades.map(x=>(x.strategy||'').trim()))];
+    if(TJ_MS_STATE.strategy.size&&TJ_MS_STATE.strategy.size<allStrats.length&&![...TJ_MS_STATE.strategy].includes((t.strategy||'').trim()))return false;
+    const allTrigs=[...new Set(trades.map(x=>(x.trigger||'').trim()))];
+    if(TJ_MS_STATE.trigger.size&&TJ_MS_STATE.trigger.size<allTrigs.length&&![...TJ_MS_STATE.trigger].includes((t.trigger||'').trim()))return false;
+    const allDemons=[...new Set(trades.map(x=>(x.demon||'').trim()))];
+    if(TJ_MS_STATE.demon.size&&TJ_MS_STATE.demon.size<allDemons.length&&![...TJ_MS_STATE.demon].includes((t.demon||'').trim()))return false;
+    const allEmotions=[...new Set(trades.map(x=>(x.emotion||'').trim()))];
+    if(TJ_MS_STATE.emotion.size&&TJ_MS_STATE.emotion.size<allEmotions.length&&![...TJ_MS_STATE.emotion].includes((t.emotion||'').trim()))return false;
     if(fSearch&&!(
       (t.coin||'').toLowerCase().includes(fSearch)||
       (t.base||'').toLowerCase().includes(fSearch)||
       (t.strategy||'').toLowerCase().includes(fSearch)||
-      (t.trigger||'').toLowerCase().includes(fSearch)
+      (t.trigger||'').toLowerCase().includes(fSearch)||
+      (t.notes||'').toLowerCase().includes(fSearch)
     ))return false;
     return true;
   });
 
-  document.getElementById('tjCount').textContent=filtered.length+' trade'+(filtered.length!==1?'s':'');
+  if(!_showLegacy)filtered=filtered.filter(t=>!t.legacy);
+
+  const legacyCount=filtered.filter(t=>t.legacy).length;
+  document.getElementById('tjCount').textContent=filtered.length+' trade'+(filtered.length!==1?'s':'')+(legacyCount?` · ${legacyCount} legacy`:'');
 
   body.innerHTML=filtered.map((t,i)=>{
     const c=tjCalc(t);
     const pnlCls=c.pnl==null?'tj-pnl-zero':c.pnl>0?'tj-pnl-pos':'tj-pnl-neg';
     const num=trades.indexOf(t)+1;
-    return`<tr class="tj-${(t.status||'open').toLowerCase()}">
-      <td style="color:var(--mu);font-size:9px">${num}</td>
+    const isLegacy=t.legacy===true;
+    const rowCls=isLegacy?'legacy-row':'tj-'+(t.status||'open').toLowerCase();
+    return`<tr class="${rowCls}">
+      <td style="color:var(--mu);font-size:9px">${num}${isLegacy?' <span class="tag-legacy">L</span>':''}</td>
       <td><input class="tj-cell-in" value="${t.coin||''}" placeholder="BTC" style="width:50px" oninput="tjFieldChange('${t.id}','coin',this.value)"></td>
       <td><input class="tj-cell-in" value="${t.base||''}" placeholder="USDT" style="width:44px" oninput="tjFieldChange('${t.id}','base',this.value)"></td>
-      <td>${tjSelCell(t.id,'status',['OPEN','CLOSED'],t.status||'OPEN')}</td>
+      <td>${tjSelCell(t.id,'status',['OPEN','CLOSED','REVIEW'],t.status||'OPEN')}</td>
       <td>${tjSelCell(t.id,'direction',['LONG','SHORT'],t.direction||'LONG')}</td>
-      <td><input class="tj-cell-in" value="${t.size||''}" placeholder="0" style="width:64px" type="number" step="any" oninput="tjFieldChange('${t.id}','size',this.value)"></td>
-      <td><input class="tj-cell-in" value="${t.entry||''}" placeholder="0.00" style="width:72px" type="number" step="any" oninput="tjFieldChange('${t.id}','entry',this.value)"></td>
+      <td><input class="tj-cell-in" id="tj_size_${t.id}" value="${t.size||''}" placeholder="0" style="width:72px" type="number" step="any" oninput="tjFieldChange('${t.id}','size',this.value)"></td>
+      <td><input class="tj-cell-in" id="tj_sizeUsd_${t.id}" value="${t.sizeUsd||''}" placeholder="0" style="width:72px" type="number" step="any" oninput="tjFieldChange('${t.id}','sizeUsd',this.value)"></td>
+      <td><input class="tj-cell-in" id="tj_entry_${t.id}" value="${t.entry||''}" placeholder="0.00" style="width:72px" type="number" step="any" oninput="tjFieldChange('${t.id}','entry',this.value)"></td>
       <td><input class="tj-cell-in" value="${t.target||''}" placeholder="0.00" style="width:72px" type="number" step="any" oninput="tjFieldChange('${t.id}','target',this.value)"></td>
       <td><input class="tj-cell-in" value="${t.sl||''}" placeholder="0.00" style="width:72px" type="number" step="any" oninput="tjFieldChange('${t.id}','sl',this.value)"></td>
       <td id="tj_potloss_${t.id}" style="color:var(--r)">${c.potLoss!=null?tjFmt(c.potLoss):'—'}</td>
@@ -2682,12 +3141,19 @@ window.tjDeleteRow=function(id){
 // ═══ DASHBOARD ═══
 function tjClosedTrades(filter){
   let t=trades.filter(x=>x.status==='CLOSED'&&tjCalc(x).pnl!=null);
+  // Dashboard legacy filter is independent of the trades tab toggle
+  if(_dashLegacyFilter==='exclude')t=t.filter(x=>!x.legacy);
+  else if(_dashLegacyFilter==='only')t=t.filter(x=>x.legacy);
+  // else 'all' — include everything
   if(filter&&filter!=='all'){
     if(['LONG','SHORT'].includes(filter))t=t.filter(x=>x.direction===filter);
   }
   if(_dashGradeFilter&&_dashGradeFilter!=='all')t=t.filter(x=>x.setupGrade===_dashGradeFilter||x.grade===_dashGradeFilter);
-  const yr=document.getElementById('dashYear')?.value;
-  if(yr)t=t.filter(x=>(x.dateClose||x.dateOpen||'').startsWith(yr));
+  const range=dashPeriodDateRange();
+  if(range){
+    if(range.from)t=t.filter(x=>(x.dateClose||x.dateOpen||'')>=range.from);
+    if(range.to)t=t.filter(x=>(x.dateClose||x.dateOpen||'')<=range.to);
+  }
   return t;
 }
 
@@ -2850,7 +3316,16 @@ function renderDashboard(){
   breakdownTable('dashByDir',c=>c.direction,'DIRECTION');
 }
 
+// ═══ AUTO REFRESH (prices) ═══
 setInterval(async()=>{if(!portfolio.length)return;await fetchPrices();render();},60000);
+
+// ═══ PERIODIC AUTO-SAVE (safety net every 30s) ═══
+setInterval(async()=>{
+  if(_fileHandle){
+    lsRawSave(); // always update localStorage
+    await fsWrite(); // silently write to file
+  }
+},30000);
 
 // ═══ THEME ═══
 let _theme=localStorage.getItem('pt_theme')||'dark';
