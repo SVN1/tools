@@ -878,9 +878,30 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 
 <script>
 // ═══ CONSTANTS ═══
-const CGIDS={BTC:'bitcoin',ETH:'ethereum',SOL:'solana',BNB:'binancecoin',XRP:'ripple',ADA:'cardano',AVAX:'avalanche-2',DOT:'polkadot',MATIC:'matic-network',LINK:'chainlink',DOGE:'dogecoin',LTC:'litecoin',UNI:'uniswap',ATOM:'cosmos',NEAR:'near',FIL:'filecoin',AAVE:'aave',MKR:'maker',INJ:'injective-protocol',ARB:'arbitrum',OP:'optimism',APT:'aptos',SUI:'sui',TON:'the-open-network',SHIB:'shiba-inu',PEPE:'pepe',WIF:'dogwifcoin',TIA:'celestia'};
-const BSYM={BTC:'BTCUSDT',ETH:'ETHUSDT',SOL:'SOLUSDT',BNB:'BNBUSDT',XRP:'XRPUSDT',ADA:'ADAUSDT',AVAX:'AVAXUSDT',DOT:'DOTUSDT',MATIC:'MATICUSDT',LINK:'LINKUSDT',DOGE:'DOGEUSDT',LTC:'LTCUSDT',UNI:'UNIUSDT',ATOM:'ATOMUSDT',NEAR:'NEARUSDT',FIL:'FILUSDT',AAVE:'AAVEUSDT',MKR:'MKRUSDT',INJ:'INJUSDT',ARB:'ARBUSDT',OP:'OPUSDT',APT:'APTUSDT',SUI:'SUIUSDT',TON:'TONUSDT',SHIB:'SHIBUSDT',PEPE:'PEPEUSDT',WIF:'WIFUSDT',TIA:'TIAUSDT'};
+const CGIDS={BTC:'bitcoin',ETH:'ethereum',SOL:'solana',BNB:'binancecoin',XRP:'ripple',ADA:'cardano',AVAX:'avalanche-2',DOT:'polkadot',MATIC:'matic-network',LINK:'chainlink',DOGE:'dogecoin',LTC:'litecoin',UNI:'uniswap',ATOM:'cosmos',NEAR:'near',FIL:'filecoin',AAVE:'aave',MKR:'maker',INJ:'injective-protocol',ARB:'arbitrum',OP:'optimism',APT:'aptos',SUI:'sui',TON:'the-open-network',SHIB:'shiba-inu',PEPE:'pepe',WIF:'dogwifcoin',TIA:'celestia',TAO:'bittensor',HYPE:'hyperliquid',ENA:'ethena',ONDO:'ondo-finance',ZEC:'zcash'};
+const BSYM={BTC:'BTCUSDT',ETH:'ETHUSDT',SOL:'SOLUSDT',BNB:'BNBUSDT',XRP:'XRPUSDT',ADA:'ADAUSDT',AVAX:'AVAXUSDT',DOT:'DOTUSDT',MATIC:'MATICUSDT',LINK:'LINKUSDT',DOGE:'DOGEUSDT',LTC:'LTCUSDT',UNI:'UNIUSDT',ATOM:'ATOMUSDT',NEAR:'NEARUSDT',FIL:'FILUSDT',AAVE:'AAVEUSDT',MKR:'MKRUSDT',INJ:'INJUSDT',ARB:'ARBUSDT',OP:'OPUSDT',APT:'APTUSDT',SUI:'SUIUSDT',TON:'TONUSDT',SHIB:'SHIBUSDT',PEPE:'PEPEUSDT',WIF:'WIFUSDT',TIA:'TIAUSDT',TAO:'TAOUSDT',HYPE:'HYPEUSDT',ENA:'ENAUSDT',ONDO:'ONDOUSDT',ZEC:'ZECUSDT'};
 const PAL=['#ff6200','#e8a838','#4fb8a0','#6a9fd8','#c47eb0','#7ec47e','#d4735e','#6ab0c4','#b8a84f','#a07ec4','#c4a07e','#5e8cd4'];
+
+// ── Per-symbol persistent colors ──
+let symColors=JSON.parse(localStorage.getItem('pt_sym_colors')||'{}');
+function getSymColor(sym,fallbackIdx){
+  return symColors[sym]||PAL[fallbackIdx%PAL.length];
+}
+window.openColorPicker=function(sym,fallbackIdx){
+  const inp=document.createElement('input');
+  inp.type='color';
+  inp.value=getSymColor(sym,fallbackIdx);
+  inp.style.cssText='position:fixed;opacity:0;width:0;height:0';
+  document.body.appendChild(inp);
+  inp.addEventListener('change',()=>{
+    symColors[sym]=inp.value;
+    localStorage.setItem('pt_sym_colors',JSON.stringify(symColors));
+    document.body.removeChild(inp);
+    render();
+  });
+  inp.addEventListener('blur',()=>{setTimeout(()=>{if(document.body.contains(inp))document.body.removeChild(inp);},200);});
+  inp.click();
+};
 
 // ═══ STATE ═══
 let portfolio = lsGet('pt_p') || [];
@@ -1413,13 +1434,19 @@ async function fetchBatchCG(syms){
   syms.forEach(s=>{const id=CGIDS[s]||s.toLowerCase();if(d[id])out[s]={usd:d[id].usd,usd_24h_change:d[id].usd_24h_change??0};});
   return out;
 }
+// Coins where Binance USDT pair exists but returns wrong token — force CoinGecko
+const CG_ONLY=new Set(['TAO']);
+
 async function fetchPrices(){
   if(!portfolio.length)return;
   setSt('<span class="spin">◌</span> FETCHING PRICES...');
   const syms=[...new Set(portfolio.map(p=>p.symbol.toUpperCase()))];
   const next={};
   const failed=[];
-  await Promise.all(syms.map(async s=>{try{next[s]=await fetchOneBinance(s);}catch(e){failed.push(s);}}));
+  await Promise.all(syms.map(async s=>{
+    if(CG_ONLY.has(s)){failed.push(s);return;}
+    try{next[s]=await fetchOneBinance(s);}catch(e){failed.push(s);}
+  }));
   if(failed.length){try{Object.assign(next,await fetchBatchCG(failed));}catch(e){}}
   if(Object.keys(next).length){
     prices=next;
@@ -1719,7 +1746,9 @@ function render(){
       if(rawKlines.length){
         const addEvents=history.filter(h=>h.action==='ADD'&&(h.sym||'').toUpperCase()===g.sym&&h.ts);
         const earliestTs=addEvents.length?Math.min(...addEvents.map(h=>h.ts)):0;
-        const filtered=earliestTs>0?rawKlines.filter(k=>k.ts>=earliestTs):rawKlines;
+        // Normalize entry to start of that day (midnight UTC) so kline candles align
+        const entryDayTs=earliestTs>0?new Date(new Date(earliestTs).toISOString().slice(0,10)+'T00:00:00Z').getTime():0;
+        const filtered=entryDayTs>0?rawKlines.filter(k=>k.ts>=entryDayTs):rawKlines;
         const klinesToUse=filtered.length?filtered:rawKlines;
         const hwm=Math.max(...klinesToUse.map(k=>k.close),cur);
         if(hwm>0)hwmDD=(hwm-cur)/hwm*100;
@@ -1767,7 +1796,7 @@ function render(){
       {c:emaDot(r.cur,em.e100),l:'100'},
       {c:emaDot(r.cur,em.e200),l:'200'}
     ]:[{c:'x',l:'9'},{c:'x',l:'21'},{c:'x',l:'50'},{c:'x',l:'100'},{c:'x',l:'200'}];
-    const col=PAL[ri%PAL.length];
+    const col=getSymColor(r.sym,ri);
     const emaPct=(price,ema)=>ema&&price?((price-ema)/ema*100).toFixed(1)+'%':'—';
     const tip=em&&r.cur
       ?`EMA9: $${em.e9?.toFixed(2)||'—'} (${emaPct(r.cur,em.e9)}) · EMA21: $${em.e21?.toFixed(2)||'—'} (${emaPct(r.cur,em.e21)}) · EMA50: $${em.e50?.toFixed(2)||'—'} (${emaPct(r.cur,em.e50)}) · EMA100: $${em.e100?.toFixed(2)||'—'} (${emaPct(r.cur,em.e100)}) · EMA200: $${em.e200?.toFixed(2)||'—'} (${emaPct(r.cur,em.e200)})`
@@ -1777,7 +1806,9 @@ function render(){
     html+=`<tr class="${hc}">
       <td><div style="display:flex;align-items:center;gap:4px">
         ${r.lots.length>1?`<button class="xbtn" onclick="toggleExp('${r.sym}')">${isExp?'▾':'▸'}</button>`:'<span style="width:13px"></span>'}
-        <div><div class="tkr" style="color:${r.sym==='USD'?'#888':col}">${r.sym}</div>
+        <div><div class="tkr" style="color:${r.sym==='USD'?getSymColor('USD',rows.length-1):''+col};display:flex;align-items:center;gap:4px">
+          <span onclick="openColorPicker('${r.sym}',${ri})" title="Click to change color" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};cursor:pointer;flex-shrink:0;border:1px solid rgba(255,255,255,.2)"></span>${r.sym}
+        </div>
         <div class="sub">${r.totalAmt.toLocaleString('en-US',{maximumFractionDigits:6})} ${r.sym}${r.lots.length>1?' · '+r.lots.length+' lots':''}</div></div>
       </div></td>
       <td class="ne">${r.cur!=null?fm(r.cur):'<span style="color:var(--mu)">—</span>'}</td>
@@ -1787,9 +1818,9 @@ function render(){
       <td style="color:var(--mu)">${fm(r.avgBuy)}</td>
       <td class="${fc(r.pnl)}">${r.pnl!=null?fm(r.pnl):'—'}</td>
       <td class="${fc(r.pnlp)}">${r.pnlp!=null?fp(r.pnlp):'—'}</td>
-      <td><div class="wr"><span class="wp" style="color:var(--or)">${r.wt.toFixed(1)}%</span><div class="wb"><div class="wf" style="width:${Math.min(r.wt*2,100)}%;background:var(--or)"></div></div></div></td>
+      <td><div class="wr"><span class="wp" style="color:${col}">${r.wt.toFixed(1)}%</span><div class="wb"><div class="wf" style="width:${Math.min(r.wt*2,100)}%;background:${col}"></div></div></div></td>
       <td title="${tip}">${r.sym==='USD'?'<span style="font-size:9px;color:#666;letter-spacing:.08em">CASH · no EMAs</span>':`<div class="ecell"><div class="edots">${dots.map(d=>`<div class="ed ${d.c}"></div>`).join('')}</div><div class="elbl">${dots.map(d=>`<span>${d.l}</span>`).join('')}</div></div>`}</td>
-      <td class="${r.hwmDD==null?'ne':r.hwmDD>20?'dn':r.hwmDD>5?'up':'ne'}">${r.sym==='USD'?'—':r.hwmDD!=null?'-'+r.hwmDD.toFixed(2)+'%':'—'}</td>
+      <td style="color:${r.hwmDD==null?'var(--w)':r.hwmDD<2?'var(--w)':r.hwmDD<10?'var(--a)':'var(--r)'}">${r.sym==='USD'?'—':r.hwmDD!=null?'-'+r.hwmDD.toFixed(2)+'%':'—'}</td>
       <td class="note-cell" data-note-sym="${r.sym}">${(()=>{
         // Show first non-empty note across lots, or a count badge if multiple
         const withNotes=r.lots.filter(l=>l.note&&l.note.trim());
@@ -2018,7 +2049,7 @@ function renderWeightStrip(rows){
   const tw=rows.reduce((s,r)=>s+(r.val||r.cost||0),0)||1;
   el.innerHTML=rows.map((r,i)=>{
     const wt=((r.val||r.cost||0)/tw*100);
-    const bg=PAL[i%PAL.length];
+    const bg=getSymColor(r.sym,i);
     const pct=wt.toFixed(1)+'%';
     // Decide text colour: dark text on bright blocks, light on dark
     const hex=bg.replace('#','');
@@ -2042,7 +2073,7 @@ function rebuildAllocChart(rows){
   });
   document.getElementById('allocLeg').innerHTML=rows.map((r,i)=>{
     const wt=(vals[i]/tot*100).toFixed(1);
-    return`<div class="alloc-leg-row"><div class="alloc-dot" style="background:${PAL[i%PAL.length]}"></div><span style="color:${PAL[i%PAL.length]};min-width:34px">${r.sym}</span><span style="color:#aaa">${wt}%</span></div>`;
+    return`<div class="alloc-leg-row"><div class="alloc-dot" style="background:${getSymColor(r.sym,i)}"></div><span style="color:${getSymColor(r.sym,i)};min-width:34px">${r.sym}</span><span style="color:#aaa">${wt}%</span></div>`;
   }).join('');
 }
 
@@ -2095,7 +2126,7 @@ function renderSignals(){
   const syms=[...new Set(portfolio.map(p=>p.symbol.toUpperCase()))];
   if(!syms.length){el.innerHTML='<div style="font-size:9px;color:var(--mu)">No positions</div>';return;}
   el.innerHTML=syms.map((sym,si)=>{
-    const s=signals[sym],col=PAL[si%PAL.length];
+    const s=signals[sym],col=getSymColor(sym,si);
     if(!s)return`<div class="sig-card"><div class="sig-hdr"><span class="sig-sym" style="color:${col}">${sym}</span><span class="sig-badge LOADING">LOADING</span></div></div>`;
     const rsiW=s.rsi!=null?Math.round(s.rsi):0;
     const rsiC=s.rsi==null?'#444':s.rsi>75||s.rsi<30?'#ff1a2e':s.rsi>60?'#ffaa00':'#00e639';
