@@ -1802,7 +1802,7 @@ function render(){
       ?`EMA9: $${em.e9?.toFixed(2)||'—'} (${emaPct(r.cur,em.e9)}) · EMA21: $${em.e21?.toFixed(2)||'—'} (${emaPct(r.cur,em.e21)}) · EMA50: $${em.e50?.toFixed(2)||'—'} (${emaPct(r.cur,em.e50)}) · EMA100: $${em.e100?.toFixed(2)||'—'} (${emaPct(r.cur,em.e100)}) · EMA200: $${em.e200?.toFixed(2)||'—'} (${emaPct(r.cur,em.e200)})`
       :'EMAs loading...';
     const isExp=expanded.has(r.sym);
-    const hc=signals[r.sym]?({'RISK':'heat-risk','WATCH':'heat-watch','HOLD':'heat-hold','NEUTRAL':''}[signals[r.sym].score]||''):'';
+    const hc='';
     html+=`<tr class="${hc}">
       <td><div style="display:flex;align-items:center;gap:4px">
         ${r.lots.length>1?`<button class="xbtn" onclick="toggleExp('${r.sym}')">${isExp?'▾':'▸'}</button>`:'<span style="width:13px"></span>'}
