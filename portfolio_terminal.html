@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PORTFOLIO TERMINAL v4.8</title>
+<title>PORTFOLIO TERMINAL v5</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -387,7 +387,7 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 
 <!-- TOP -->
 <div class="top">
-  <span class="brand">▶ PORTFOLIO TERMINAL <span style="font-size:9px;opacity:.6">v4.8</span></span>
+  <span class="brand">▶ PORTFOLIO TERMINAL <span style="font-size:9px;opacity:.6">v5</span></span>
   <div class="top-r">
     <button onclick="toggleTheme()" id="themeBtn" style="background:rgba(0,0,0,.25);border:none;color:#fff;font-family:var(--mono);font-size:9px;cursor:pointer;padding:2px 8px;letter-spacing:.08em;height:18px;" title="Toggle light/dark mode">☀ LIGHT</button>
     <span class="tclock" id="clock">--:--:--</span>
@@ -765,6 +765,36 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 <input type="file" id="jsonImportInput" accept=".json" style="display:none" onchange="handleImport(event)">
 <div id="undoToast">↩ UNDONE — <span id="undoDesc"></span></div>
 
+<!-- TRADE HISTORY CHART MODAL -->
+<div class="ov" id="tradeHistModal">
+  <div class="modal" style="width:92vw;max-width:1100px;padding:0;overflow:hidden">
+    <div style="height:32px;background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 12px;gap:10px;flex-shrink:0">
+      <span style="font-size:12px;font-weight:600;color:var(--or)" id="thcSym">—</span>
+      <span style="font-size:9px;color:var(--mu)" id="thcPair">/ USDT</span>
+      <span style="color:var(--mu2)">|</span>
+      <button class="chart-tf-btn on" id="thc-1d" onclick="thcSetTf('1d',this)">1D</button>
+      <button class="chart-tf-btn" id="thc-1w" onclick="thcSetTf('1w',this)">1W</button>
+      <div style="display:flex;align-items:center;gap:10px;margin-left:8px;font-size:9px">
+        <span style="color:#00e639">▲ BUY</span>
+        <span style="color:#ff1a2e">▼ SELL</span>
+        <span style="color:var(--mu)">· hover candles for details</span>
+      </div>
+      <span style="flex:1"></span>
+      <span style="font-size:9px;color:var(--mu)" id="thcStatus"></span>
+      <button class="chart-popup-close" onclick="closeTradeHistModal()">✕ CLOSE</button>
+    </div>
+    <div style="height:480px;position:relative;background:#0c0c0c">
+      <canvas id="thcCanvas"></canvas>
+      <div id="thcTooltip" style="position:absolute;display:none;background:var(--bg3);border:1px solid var(--bd);padding:5px 8px;font-size:9px;color:var(--w);pointer-events:none;white-space:nowrap;z-index:10;font-family:var(--mono)"></div>
+      <div id="thcLoading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-size:11px;color:var(--mu);font-family:var(--mono)">
+        <div><span class="spin">◌</span> &nbsp;<span id="thcLoadingMsg">LOADING...</span></div>
+        <button id="thcRetryBtn" onclick="thcRetry()" style="display:none;background:var(--org);border:1px solid var(--or);color:var(--or);font-family:var(--mono);font-size:10px;padding:4px 12px;cursor:pointer">↻ RETRY</button>
+      </div>
+    </div>
+    <div style="background:var(--bg2);border-top:1px solid var(--bd);padding:6px 12px;display:flex;gap:16px;flex-wrap:wrap;font-size:9px;font-family:var(--mono)" id="thcLegend"></div>
+  </div>
+</div>
+
 <!-- CHART POPUP -->
 <div id="chartModal">
   <div class="chart-popup">
@@ -878,8 +908,8 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 
 <script>
 // ═══ CONSTANTS ═══
-const CGIDS={BTC:'bitcoin',ETH:'ethereum',SOL:'solana',BNB:'binancecoin',XRP:'ripple',ADA:'cardano',AVAX:'avalanche-2',DOT:'polkadot',MATIC:'matic-network',LINK:'chainlink',DOGE:'dogecoin',LTC:'litecoin',UNI:'uniswap',ATOM:'cosmos',NEAR:'near',FIL:'filecoin',AAVE:'aave',MKR:'maker',INJ:'injective-protocol',ARB:'arbitrum',OP:'optimism',APT:'aptos',SUI:'sui',TON:'the-open-network',SHIB:'shiba-inu',PEPE:'pepe',WIF:'dogwifcoin',TIA:'celestia',TAO:'bittensor',HYPE:'hyperliquid',ENA:'ethena',ONDO:'ondo-finance',ZEC:'zcash'};
-const BSYM={BTC:'BTCUSDT',ETH:'ETHUSDT',SOL:'SOLUSDT',BNB:'BNBUSDT',XRP:'XRPUSDT',ADA:'ADAUSDT',AVAX:'AVAXUSDT',DOT:'DOTUSDT',MATIC:'MATICUSDT',LINK:'LINKUSDT',DOGE:'DOGEUSDT',LTC:'LTCUSDT',UNI:'UNIUSDT',ATOM:'ATOMUSDT',NEAR:'NEARUSDT',FIL:'FILUSDT',AAVE:'AAVEUSDT',MKR:'MKRUSDT',INJ:'INJUSDT',ARB:'ARBUSDT',OP:'OPUSDT',APT:'APTUSDT',SUI:'SUIUSDT',TON:'TONUSDT',SHIB:'SHIBUSDT',PEPE:'PEPEUSDT',WIF:'WIFUSDT',TIA:'TIAUSDT',TAO:'TAOUSDT',HYPE:'HYPEUSDT',ENA:'ENAUSDT',ONDO:'ONDOUSDT',ZEC:'ZECUSDT'};
+const CGIDS={BTC:'bitcoin',ETH:'ethereum',SOL:'solana',BNB:'binancecoin',XRP:'ripple',ADA:'cardano',AVAX:'avalanche-2',DOT:'polkadot',MATIC:'matic-network',LINK:'chainlink',DOGE:'dogecoin',LTC:'litecoin',UNI:'uniswap',ATOM:'cosmos',NEAR:'near',FIL:'filecoin',AAVE:'aave',MKR:'maker',INJ:'injective-protocol',ARB:'arbitrum',OP:'optimism',APT:'aptos',SUI:'sui',TON:'the-open-network',SHIB:'shiba-inu',PEPE:'pepe',WIF:'dogwifcoin',TIA:'celestia',TAO:'bittensor',HYPE:'hyperliquid',ENA:'ethena',ONDO:'ondo-finance',ZEC:'zcash',WLD:'worldcoin-wld'};
+const BSYM={BTC:'BTCUSDT',ETH:'ETHUSDT',SOL:'SOLUSDT',BNB:'BNBUSDT',XRP:'XRPUSDT',ADA:'ADAUSDT',AVAX:'AVAXUSDT',DOT:'DOTUSDT',MATIC:'MATICUSDT',LINK:'LINKUSDT',DOGE:'DOGEUSDT',LTC:'LTCUSDT',UNI:'UNIUSDT',ATOM:'ATOMUSDT',NEAR:'NEARUSDT',FIL:'FILUSDT',AAVE:'AAVEUSDT',MKR:'MKRUSDT',INJ:'INJUSDT',ARB:'ARBUSDT',OP:'OPUSDT',APT:'APTUSDT',SUI:'SUIUSDT',TON:'TONUSDT',SHIB:'SHIBUSDT',PEPE:'PEPEUSDT',WIF:'WIFUSDT',TIA:'TIAUSDT',TAO:'TAOUSDT',HYPE:'HYPEUSDT',ENA:'ENAUSDT',ONDO:'ONDOUSDT',ZEC:'ZECUSDT',WLD:'WLDUSDT'};
 const PAL=['#ff6200','#e8a838','#4fb8a0','#6a9fd8','#c47eb0','#7ec47e','#d4735e','#6ab0c4','#b8a84f','#a07ec4','#c4a07e','#5e8cd4'];
 
 // ── Per-symbol persistent colors ──
@@ -1707,7 +1737,22 @@ window.doRefresh=async function(){
 };
 
 // ═══ HELPERS ═══
-const fm=(n,d=2)=>n==null?'—':'$'+n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fm=(n,d)=>{
+  if(n==null)return'—';
+  if(d!=null)return'$'+n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+  // Auto decimal places based on magnitude
+  const abs=Math.abs(n);
+  let dec=2;
+  if(abs===0)dec=2;
+  else if(abs<0.00001)dec=10;
+  else if(abs<0.0001)dec=8;
+  else if(abs<0.001)dec=6;
+  else if(abs<0.01)dec=5;
+  else if(abs<0.1)dec=4;
+  else if(abs<1)dec=4;
+  else dec=2;
+  return'$'+n.toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+};
 const fp=n=>n==null?'—':(n>=0?'+':'')+n.toFixed(2)+'%';
 const fc=n=>n>0?'up':n<0?'dn':'ne';
 function setSt(m){document.getElementById('st').innerHTML=m+'<span class="blink">_</span>';}
@@ -1811,11 +1856,11 @@ function render(){
         </div>
         <div class="sub">${r.totalAmt.toLocaleString('en-US',{maximumFractionDigits:6})} ${r.sym}${r.lots.length>1?' · '+r.lots.length+' lots':''}</div></div>
       </div></td>
-      <td class="ne">${r.cur!=null?fm(r.cur):'<span style="color:var(--mu)">—</span>'}</td>
+      <td class="ne" title="${r.cur!=null?'$'+r.cur.toPrecision(10):''}">${r.cur!=null?fm(r.cur):'<span style="color:var(--mu)">—</span>'}</td>
       <td class="${fc(r.chg)}">${r.chg!=null?fp(r.chg):'—'}</td>
       <td>${r.totalAmt.toLocaleString('en-US',{maximumFractionDigits:6})}</td>
       <td class="ne">${r.val!=null?fm(r.val):'—'}</td>
-      <td style="color:var(--mu)">${fm(r.avgBuy)}</td>
+      <td style="color:var(--mu);cursor:pointer" onclick="openTradeHistoryChart('${r.sym}')" title="Avg buy: $${r.avgBuy.toPrecision(10)} · Click for chart">${fm(r.avgBuy)}</td>
       <td class="${fc(r.pnl)}">${r.pnl!=null?fm(r.pnl):'—'}</td>
       <td class="${fc(r.pnlp)}">${r.pnlp!=null?fp(r.pnlp):'—'}</td>
       <td><div class="wr"><span class="wp" style="color:${col}">${r.wt.toFixed(1)}%</span><div class="wb"><div class="wf" style="width:${Math.min(r.wt*2,100)}%;background:${col}"></div></div></div></td>
@@ -3358,7 +3403,273 @@ setInterval(async()=>{
   }
 },30000);
 
-// ═══ THEME ═══
+// ═══ TRADE HISTORY CHART ═══
+let _thcChart=null, _thcSym=null, _thcTf='1d', _thcKlines={};
+const THC_START=new Date('2026-01-01T00:00:00Z').getTime();
+
+async function fetchThcKlines(sym,tf){
+  const key=sym+'_'+tf;
+  if(_thcKlines[key]&&_thcKlines[key].length)return _thcKlines[key];
+  const pair=BSYM[sym]||(sym+'USDT');
+  const cgId=CGIDS[sym]||sym.toLowerCase();
+  const days=Math.min(365,Math.ceil((Date.now()-THC_START)/86400000)+2);
+
+  const setStatus=msg=>document.getElementById('thcStatus').textContent=msg;
+
+  // 1. Binance
+  setStatus('Trying Binance...');
+  try{
+    const r=await fetch(`https://api.binance.com/api/v3/klines?symbol=${pair}&interval=${tf}&startTime=${THC_START}&limit=1000`,{signal:AbortSignal.timeout(8000)});
+    if(r.ok){const d=await r.json();if(d&&d.length){_thcKlines[key]=d;return d;}}
+  }catch(e){}
+
+  // 2. CoinGecko OHLC — up to 3 attempts with increasing delay
+  for(let attempt=0;attempt<3;attempt++){
+    if(attempt>0){
+      const wait=attempt*1500;
+      setStatus(`CoinGecko rate limited — retrying in ${wait/1000}s...`);
+      await new Promise(r=>setTimeout(r,wait));
+    }
+    setStatus(`Trying CoinGecko OHLC (attempt ${attempt+1}/3)...`);
+    try{
+      const r=await fetch(`https://api.coingecko.com/api/v3/coins/${cgId}/ohlc?vs_currency=usd&days=${days}`,{signal:AbortSignal.timeout(12000)});
+      if(r.status===429){continue;}
+      if(r.ok){
+        const d=await r.json();
+        if(Array.isArray(d)&&d.length){
+          const filtered=d.filter(k=>k[0]>=THC_START);
+          if(filtered.length){
+            let klines=filtered.map(k=>[k[0],k[1],k[2],k[3],k[4],'0']);
+            if(tf==='1w'){
+              const weekly=[];
+              for(let i=0;i<klines.length;i+=42){
+                const chunk=klines.slice(i,i+42);if(!chunk.length)continue;
+                const hi=Math.max(...chunk.map(k=>parseFloat(k[2])));
+                const lo=Math.min(...chunk.map(k=>parseFloat(k[3])));
+                weekly.push([chunk[0][0],chunk[0][1],hi,lo,chunk[chunk.length-1][4],'0']);
+              }
+              klines=weekly;
+            }
+            _thcKlines[key]=klines;return klines;
+          }
+        }
+      }
+    }catch(e){}
+
+    // 3. market_chart as second fallback per attempt
+    setStatus(`Trying CoinGecko market_chart (attempt ${attempt+1}/3)...`);
+    try{
+      const r=await fetch(`https://api.coingecko.com/api/v3/coins/${cgId}/market_chart?vs_currency=usd&days=${days}&interval=daily`,{signal:AbortSignal.timeout(12000)});
+      if(r.status===429){continue;}
+      if(r.ok){
+        const d=await r.json();
+        if(d.prices&&d.prices.length){
+          const filtered=d.prices.filter(p=>p[0]>=THC_START);
+          if(filtered.length){
+            const klines=filtered.map((p,i)=>{
+              const prev=filtered[i-1]?.[1]||p[1];
+              const next=filtered[i+1]?.[1]||p[1];
+              return[p[0],prev,Math.max(p[1],prev,next)*1.005,Math.min(p[1],prev,next)*0.995,p[1],'0'];
+            });
+            _thcKlines[key]=klines;return klines;
+          }
+        }
+      }
+    }catch(e){}
+  }
+
+  setStatus('No data');
+  const retryBtn=document.getElementById('thcRetryBtn');
+  if(retryBtn)retryBtn.style.display='block';
+  document.getElementById('thcLoading').style.display='flex';
+  return[];
+}
+
+window.openTradeHistoryChart=async function(sym){
+  if(sym==='USD')return;
+  _thcSym=sym;_thcTf='1d';
+  document.getElementById('thcSym').textContent=sym;
+  document.getElementById('thcPair').textContent='/ USDT · BINANCE · from Jan 2026';
+  document.getElementById('thcLoading').style.display='flex';
+  document.getElementById('tradeHistModal').classList.add('on');
+  // Reset TF buttons
+  document.querySelectorAll('#thc-1d,#thc-1w').forEach(b=>b.classList.remove('on'));
+  document.getElementById('thc-1d').classList.add('on');
+  await renderThcChart();
+};
+
+window.thcSetTf=async function(tf,btn){
+  _thcTf=tf;
+  document.querySelectorAll('#thc-1d,#thc-1w').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('thcLoading').style.display='flex';
+  await renderThcChart();
+};
+
+window.thcRetry=async function(){
+  const key=_thcSym+'_'+_thcTf;
+  delete _thcKlines[key]; // clear cache so it refetches
+  const retryBtn=document.getElementById('thcRetryBtn');
+  if(retryBtn)retryBtn.style.display='none';
+  document.getElementById('thcLoading').style.display='flex';
+  await renderThcChart();
+};
+
+window.closeTradeHistModal=function(){
+  document.getElementById('tradeHistModal').classList.remove('on');
+  if(_thcChart){_thcChart.destroy();_thcChart=null;}
+};
+document.getElementById('tradeHistModal').addEventListener('click',e=>{
+  if(e.target===document.getElementById('tradeHistModal'))closeTradeHistModal();
+});
+
+async function renderThcChart(){
+  const sym=_thcSym;
+  document.getElementById('thcStatus').textContent='Fetching...';
+  const retryBtn=document.getElementById('thcRetryBtn');
+  if(retryBtn)retryBtn.style.display='none';
+  document.getElementById('thcLoading').style.display='flex';
+  const raw=await fetchThcKlines(sym,_thcTf);
+  document.getElementById('thcLoading').style.display='none';
+
+  if(!raw.length){document.getElementById('thcStatus').textContent='No data';return;}
+
+  // Build OHLC arrays
+  const labels=raw.map(k=>new Date(k[0]).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}));
+  const closes=raw.map(k=>parseFloat(k[4]));
+  const highs=raw.map(k=>parseFloat(k[2]));
+  const lows=raw.map(k=>parseFloat(k[3]));
+  const opens=raw.map(k=>parseFloat(k[1]));
+
+  // Gather buys from history for this sym
+  const buys=history.filter(h=>h.action==='ADD'&&(h.sym||'').toUpperCase()===sym&&h.ts>=THC_START&&h.meta?.price);
+  // Gather sells from realized
+  const sells=realized.filter(r=>r.sym===sym&&r.ts>=THC_START);
+
+  // Map each buy/sell to nearest candle index by timestamp
+  const candleTs=raw.map(k=>k[0]);
+  function nearestIdx(ts){
+    let best=0,bestDiff=Infinity;
+    candleTs.forEach((t,i)=>{const d=Math.abs(t-ts);if(d<bestDiff){bestDiff=d;best=i;}});
+    return best;
+  }
+
+  // Build buy/sell point datasets
+  const buyPoints=new Array(raw.length).fill(null);
+  const sellPoints=new Array(raw.length).fill(null);
+  const buyMeta=[],sellMeta=[];
+
+  buys.forEach(b=>{
+    const i=nearestIdx(b.ts);
+    buyPoints[i]=lows[i]*0.987; // place triangle just below the candle low
+    buyMeta[i]={price:b.meta.price,qty:b.meta.amount,date:new Date(b.ts).toLocaleDateString()};
+  });
+  sells.forEach(s=>{
+    const i=nearestIdx(s.ts);
+    sellPoints[i]=highs[i]*1.013; // place triangle just above the candle high
+    sellMeta[i]={price:s.sellPrice,qty:s.qty,pnl:s.pnl,date:new Date(s.ts).toLocaleDateString()};
+  });
+
+  // Candle body colors
+  const candleColors=raw.map(k=>parseFloat(k[4])>=parseFloat(k[1])?'rgba(0,200,100,.7)':'rgba(255,60,60,.7)');
+  const borderColors=raw.map(k=>parseFloat(k[4])>=parseFloat(k[1])?'#00c864':'#ff3c3c');
+
+  if(_thcChart){_thcChart.destroy();_thcChart=null;}
+
+  const canvas=document.getElementById('thcCanvas');
+  const wrap=canvas.parentElement;
+  canvas.width=wrap.clientWidth||800;
+  canvas.height=480;
+
+  // Y axis bounds from actual price data only
+  const allPrices=[...highs,...lows].filter(Boolean);
+  const yMin=Math.min(...allPrices)*0.99;
+  const yMax=Math.max(...allPrices)*1.01;
+
+  _thcChart=new Chart(canvas,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        // Candle bodies (floating bar from open to close)
+        {
+          label:'Price',
+          data:raw.map((_,i)=>[Math.min(opens[i],closes[i]),Math.max(opens[i],closes[i])]),
+          backgroundColor:candleColors,
+          borderColor:borderColors,
+          borderWidth:1,
+          borderSkipped:false,
+        },
+        // Buy markers
+        {
+          label:'Buy',
+          type:'line',
+          data:buyPoints,
+          pointRadius:raw.map((_,i)=>buyPoints[i]!==null?8:0),
+          pointStyle:'triangle',
+          pointRotation:0,
+          pointBackgroundColor:'#00e639',
+          pointBorderColor:'#0c0c0c',
+          pointBorderWidth:1,
+          borderColor:'transparent',
+          fill:false,
+          showLine:false,
+        },
+        // Sell markers
+        {
+          label:'Sell',
+          type:'line',
+          data:sellPoints,
+          pointRadius:raw.map((_,i)=>sellPoints[i]!==null?8:0),
+          pointStyle:'triangle',
+          pointRotation:180,
+          pointBackgroundColor:'#ff1a2e',
+          pointBorderColor:'#0c0c0c',
+          pointBorderWidth:1,
+          borderColor:'transparent',
+          fill:false,
+          showLine:false,
+        },
+      ]
+    },
+    options:{
+      responsive:false,
+      maintainAspectRatio:false,
+      animation:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          enabled:false,
+          external:(ctx)=>{
+            const tip=document.getElementById('thcTooltip');
+            if(ctx.tooltip.opacity===0){tip.style.display='none';return;}
+            const i=ctx.tooltip.dataPoints?.[0]?.dataIndex;
+            if(i==null){tip.style.display='none';return;}
+            let html=`<div style="color:var(--or);margin-bottom:3px">${labels[i]}</div>`;
+            html+=`<div>O: ${fm(opens[i])} H: ${fm(highs[i])}</div>`;
+            html+=`<div>L: ${fm(lows[i])} C: ${fm(closes[i])}</div>`;
+            if(buyMeta[i])html+=`<div style="color:#00e639;margin-top:3px">▲ BUY ${buyMeta[i].qty} @ ${fm(buyMeta[i].price)}</div>`;
+            if(sellMeta[i])html+=`<div style="color:#ff1a2e;margin-top:3px">▼ SELL ${sellMeta[i].qty} @ ${fm(sellMeta[i].price)} (${sellMeta[i].pnl>=0?'+':''}${fm(sellMeta[i].pnl)})</div>`;
+            tip.innerHTML=html;
+            tip.style.display='block';
+            const x=ctx.tooltip.caretX,y=ctx.tooltip.caretY;
+            tip.style.left=(x+12)+'px';
+            tip.style.top=Math.max(4,y-40)+'px';
+          }
+        }
+      },
+      scales:{
+        x:{ticks:{color:'#555',font:{size:8,family:"'IBM Plex Mono'"},maxTicksLimit:12,maxRotation:0},grid:{color:'rgba(255,255,255,.03)'}},
+        y:{min:yMin,max:yMax,ticks:{color:'#555',font:{size:8,family:"'IBM Plex Mono'"},callback:v=>fm(v)},grid:{color:'rgba(255,255,255,.04)'},position:'right'}
+      }
+    }
+  });
+
+  // Legend
+  const leg=document.getElementById('thcLegend');
+  leg.innerHTML=`<span style="color:#00e639">▲ ${buys.length} buy${buys.length!==1?'s':''}</span><span style="color:#ff1a2e">▼ ${sells.length} sell${sells.length!==1?'s':''}</span><span style="color:var(--mu)">${raw.length} candles · ${_thcTf==='1d'?'daily':'weekly'}</span>`;
+  document.getElementById('thcStatus').textContent=raw.length+' candles';
+}
 let _theme=localStorage.getItem('pt_theme')||'dark';
 function applyTheme(){
   document.documentElement.setAttribute('data-theme',_theme);
