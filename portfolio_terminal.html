@@ -3012,7 +3012,7 @@ function renderTreasury(){
 function renderTrKpis(){
   // Total realized P&L = sum of realized[] + sum of trades[] where pnl exists
   const rPnl = realized.reduce((s,r)=>s+(r.pnl||0),0);
-  const tPnl = trades.filter(t=>!t.legacy).reduce((s,t)=>s+(parseFloat(t.pnl)||0),0);
+  const tPnl = trades.filter(t=>!t.legacy&&t.status==='CLOSED').reduce((s,t)=>{const c=tjCalc(t);return s+(c.pnl||0);},0);
   const totalRPnl = rPnl + tPnl;
 
   // BTC treasury stats
