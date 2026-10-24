@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PORTFOLIO TERMINAL v5</title>
+<title>PORTFOLIO TERMINAL v5.1</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -303,6 +303,56 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 .main-tab:hover{color:var(--w);background:var(--bg2);}
 .main-tab.on{color:#000;background:var(--or);font-weight:600;}
 
+/* ── TREASURY TAB ── */
+#treasuryTab{display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;}
+#treasuryTab.active{display:flex;}
+.tr-body{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;}
+.tr-kpis{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--bd);flex-shrink:0;}
+.tr-kpi{padding:8px 12px;border-right:1px solid var(--bd);}
+.tr-kpi:last-child{border-right:none;}
+.tr-kpi-label{font-size:9px;color:var(--mu);letter-spacing:.08em;margin-bottom:3px;}
+.tr-kpi-val{font-size:14px;font-weight:600;}
+.tr-kpi-sub{font-size:9px;color:var(--mu);margin-top:2px;}
+.tr-section{border-bottom:1px solid var(--bd);padding:10px 12px;}
+.tr-section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.tr-section-title{font-size:9px;color:var(--or);letter-spacing:.1em;}
+.tr-add-btn{font-size:9px;padding:2px 8px;border:1px solid var(--or);color:var(--or);background:var(--org);cursor:pointer;font-family:var(--mono);letter-spacing:.06em;}
+.tr-add-btn:hover{background:var(--orl);}
+.tr-table{width:100%;border-collapse:collapse;font-size:11px;}
+.tr-table th{padding:3px 8px;text-align:right;font-size:9px;font-weight:600;color:var(--or);letter-spacing:.08em;border-bottom:1px solid var(--bd);white-space:nowrap;}
+.tr-table th:first-child{text-align:left;}
+.tr-table td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--bg2);color:var(--w);white-space:nowrap;font-size:11px;}
+.tr-table td:first-child{text-align:left;color:var(--mu);}
+.tr-table td.or{color:var(--or);}
+.tr-table tr:hover td{background:var(--bg2);}
+.tr-del-btn{font-size:9px;padding:1px 5px;border:1px solid var(--mu2);color:var(--mu);background:none;cursor:pointer;font-family:var(--mono);}
+.tr-del-btn:hover{border-color:var(--r);color:var(--r);}
+.tr-chart-section{flex:1;display:flex;flex-direction:column;padding:10px 12px;min-height:220px;}
+.tr-chart-meta{display:flex;gap:12px;align-items:center;margin-bottom:6px;flex-wrap:wrap;}
+.tr-chart-stat{font-size:9px;color:var(--mu);}
+.tr-chart-stat span{color:var(--w);}
+.tr-legend{display:flex;gap:14px;align-items:center;margin-left:auto;}
+.tr-leg{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--mu);}
+.tr-leg-dot{width:20px;height:2px;border-radius:1px;}
+.tr-ma-btn{font-size:9px;padding:1px 6px;border:1px solid var(--mu2);color:var(--mu);background:none;cursor:pointer;font-family:var(--mono);}
+.tr-ma-btn.on{border-color:var(--a);color:var(--a);background:rgba(255,170,0,.08);}
+.tr-cw{flex:1;min-height:0;position:relative;}
+
+/* ── TREASURY LOG MODAL ── */
+#trModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:400;align-items:center;justify-content:center;}
+#trModal.on{display:flex;}
+.tr-modal-box{background:var(--bg1);border:1px solid var(--or);width:340px;}
+.tr-modal-hdr{background:var(--bg2);border-bottom:1px solid var(--bd);padding:8px 12px;font-size:10px;color:var(--or);letter-spacing:.1em;display:flex;align-items:center;justify-content:space-between;}
+.tr-modal-body{padding:14px 12px;display:flex;flex-direction:column;gap:10px;}
+.tr-field{display:flex;flex-direction:column;gap:4px;}
+.tr-field label{font-size:9px;color:var(--mu);letter-spacing:.08em;}
+.tr-field input{background:var(--bg3);border:1px solid var(--bd);color:var(--w);font-family:var(--mono);font-size:12px;padding:5px 8px;width:100%;}
+.tr-field input:focus{outline:none;border-color:var(--or);}
+.tr-modal-footer{padding:8px 12px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end;}
+.tr-save-btn{font-size:10px;padding:4px 14px;border:1px solid var(--or);color:var(--or);background:var(--org);cursor:pointer;font-family:var(--mono);}
+.tr-save-btn:hover{background:var(--orl);}
+.tr-cancel-btn{font-size:10px;padding:4px 14px;border:1px solid var(--mu2);color:var(--mu);background:none;cursor:pointer;font-family:var(--mono);}
+
 /* ── TRADES TAB ── */
 #tradesTab{display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;}
 #tradesTab.active{display:flex;}
@@ -387,7 +437,7 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
 
 <!-- TOP -->
 <div class="top">
-  <span class="brand">▶ PORTFOLIO TERMINAL <span style="font-size:9px;opacity:.6">v5</span></span>
+  <span class="brand">▶ PORTFOLIO TERMINAL <span style="font-size:9px;opacity:.6">v5.1</span></span>
   <div class="top-r">
     <button onclick="toggleTheme()" id="themeBtn" style="background:rgba(0,0,0,.25);border:none;color:#fff;font-family:var(--mono);font-size:9px;cursor:pointer;padding:2px 8px;letter-spacing:.08em;height:18px;" title="Toggle light/dark mode">☀ LIGHT</button>
     <span class="tclock" id="clock">--:--:--</span>
@@ -414,6 +464,7 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
     <div class="main-tab on" id="tab-portfolio" onclick="switchMainTab('portfolio')">◈ PORTFOLIO</div>
     <div class="main-tab" id="tab-trades" onclick="switchMainTab('trades')">⚡ TRADES</div>
     <div class="main-tab" id="tab-dash" onclick="switchMainTab('dash')">▦ DASHBOARD</div>
+    <div class="main-tab" id="tab-treasury" onclick="switchMainTab('treasury')">⬡ TREASURY</div>
   </div>
 
   <!-- ══════════════ PORTFOLIO TAB ══════════════ -->
@@ -535,6 +586,15 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
             <button class="eq-tf-btn" onclick="setEqTf('3m',this)">3M</button>
             <button class="eq-tf-btn" onclick="setEqTf('1m',this)">1M</button>
             <button class="eq-tf-btn" onclick="setEqTf('1w',this)">1W</button>
+            <div style="width:1px;height:12px;background:var(--bd);margin:0 3px"></div>
+            <button class="eq-tf-btn" id="eqMaBtn" onclick="toggleEqMA()" title="Toggle moving average">MA</button>
+            <select id="eqMaPeriod" onchange="setEqMAPeriod(this.value)" style="display:none;background:var(--bg2);color:var(--mu);border:1px solid var(--bd);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:1px 3px;cursor:pointer">
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="200">200</option>
+            </select>
           </div>
         </div>
         <div class="cw" style="flex:1;min-height:0"><canvas id="eqChart"></canvas></div>
@@ -760,6 +820,84 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
     </div>
   </div>
 
+
+  <!-- ══════════════ TREASURY TAB ══════════════ -->
+  <div id="treasuryTab">
+    <div class="tr-body">
+      <!-- KPIs -->
+      <div class="tr-kpis" id="trKpis">
+        <div class="tr-kpi"><div class="tr-kpi-label">REALIZED P&L (TOTAL)</div><div class="tr-kpi-val" id="tr-kpi-rpnl">$0.00</div><div class="tr-kpi-sub">portfolio + trades</div></div>
+        <div class="tr-kpi"><div class="tr-kpi-label">DEPLOYED TO TREASURY</div><div class="tr-kpi-val" id="tr-kpi-dep" style="color:var(--or)">$0.00</div><div class="tr-kpi-sub" id="tr-kpi-dep-sub">—% of realized P&L</div></div>
+        <div class="tr-kpi"><div class="tr-kpi-label">BTC ACCUMULATED</div><div class="tr-kpi-val" id="tr-kpi-btc">0.00000 BTC</div><div class="tr-kpi-sub" id="tr-kpi-btc-sub">0 purchases</div></div>
+        <div class="tr-kpi"><div class="tr-kpi-label">TREASURY VALUE</div><div class="tr-kpi-val" id="tr-kpi-val">$0.00</div><div class="tr-kpi-sub" id="tr-kpi-val-sub">—</div></div>
+        <div class="tr-kpi"><div class="tr-kpi-label">P&L KEPT AS CASH</div><div class="tr-kpi-val" id="tr-kpi-cash">$0.00</div><div class="tr-kpi-sub" id="tr-kpi-cash-sub">—% of realized P&L</div></div>
+      </div>
+
+      <!-- Purchase log -->
+      <div class="tr-section">
+        <div class="tr-section-hdr">
+          <span class="tr-section-title">BTC TREASURY PURCHASES</span>
+          <button class="tr-add-btn" onclick="openTrModal()">+ LOG PURCHASE</button>
+        </div>
+        <table class="tr-table">
+          <thead><tr>
+            <th style="text-align:left">DATE</th>
+            <th>USD SPENT</th>
+            <th>BTC RECEIVED</th>
+            <th>PRICE PAID</th>
+            <th>CURRENT VALUE</th>
+            <th>GAIN</th>
+            <th>NOTE</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="trTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Equity + Treasury chart -->
+      <div class="tr-chart-section">
+        <div class="tr-section-hdr" style="margin-bottom:4px">
+          <span class="tr-section-title">EQUITY + TREASURY CURVE</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="tr-ma-btn" id="trMaBtn" onclick="toggleTrMA()">MA</button>
+            <div class="tr-legend">
+              <div class="tr-leg"><div class="tr-leg-dot" style="background:#00e639"></div>Portfolio equity</div>
+              <div class="tr-leg"><div class="tr-leg-dot" style="background:var(--or)"></div>BTC treasury</div>
+              <div class="tr-leg"><div class="tr-leg-dot" style="background:var(--a);opacity:.6"></div>Realized P&L</div>
+            </div>
+          </div>
+        </div>
+        <div class="tr-chart-meta">
+          <div class="tr-chart-stat">Portfolio: <span id="tr-eq-now">$0</span></div>
+          <div class="tr-chart-stat">Treasury: <span id="tr-trs-now">$0</span></div>
+          <div class="tr-chart-stat">Cum. P&L: <span id="tr-rpnl-now">$0</span></div>
+        </div>
+        <div class="tr-cw"><canvas id="trChart" role="img" aria-label="Treasury chart showing portfolio equity, BTC treasury value, and cumulative realized P&L over time"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Treasury Log Modal -->
+  <div id="trModal">
+    <div class="tr-modal-box">
+      <div class="tr-modal-hdr">
+        <span id="trModalTitle">LOG BTC PURCHASE</span>
+        <span style="cursor:pointer;color:var(--mu)" onclick="closeTrModal()">✕</span>
+      </div>
+      <div class="tr-modal-body">
+        <div class="tr-field"><label>DATE</label><input type="date" id="trInDate"></div>
+        <div class="tr-field"><label>USD SPENT (from profits)</label><input type="number" id="trInUsd" placeholder="5000" step="0.01"></div>
+        <div class="tr-field"><label>BTC RECEIVED</label><input type="number" id="trInBtc" placeholder="0.08000" step="0.00001"></div>
+        <div class="tr-field"><label>NOTE (optional)</label><input type="text" id="trInNote" placeholder="e.g. from Oct profits"></div>
+      </div>
+      <div id="trModalNote" style="color:var(--r);font-size:11px;padding:0 0 6px 0;min-height:16px"></div>
+      <div class="tr-modal-footer">
+        <button class="tr-cancel-btn" onclick="closeTrModal()">CANCEL</button>
+        <button class="tr-save-btn" onclick="saveTrPurchase()">SAVE</button>
+      </div>
+    </div>
+  </div>
+
 </div><!-- end shell -->
 
 <input type="file" id="jsonImportInput" accept=".json" style="display:none" onchange="handleImport(event)">
@@ -939,6 +1077,7 @@ let history   = lsGet('pt_h') || [];
 let realized  = lsGet('pt_r') || [];
 let equity    = lsGet('pt_eq')|| [];
 let trades    = lsGet('pt_tr')|| [];  // active trading journal
+let treasury  = lsGet('pt_trs')|| []; // BTC treasury purchases [{id,date,usd,btc,pricePaid,note}]
 let prices    = {};
 let emas      = {};
 let signals   = {};
@@ -1018,6 +1157,7 @@ function lsRawSave(){
     localStorage.setItem('pt_r',JSON.stringify(realized));
     localStorage.setItem('pt_eq',JSON.stringify(equity));
     localStorage.setItem('pt_tr',JSON.stringify(trades));
+    localStorage.setItem('pt_trs',JSON.stringify(treasury));
   }catch(e){}
 }
 
@@ -1058,7 +1198,7 @@ async function idbClearHandle(){
 }
 
 function buildSnapshot(){
-  return JSON.stringify({version:3,saved:new Date().toISOString(),portfolio,history,realized,equity,trades},null,2);
+  return JSON.stringify({version:3,saved:new Date().toISOString(),portfolio,history,realized,equity,trades,treasury},null,2);
 }
 
 async function fsWrite(){
@@ -1191,6 +1331,7 @@ async function fsPickExisting(){
     realized=data.realized||[];
     equity=data.equity||[];
     trades=data.trades||[];
+    treasury=data.treasury||[];
     emas={};signals={};
     _fileHandle=handle;
     await idbSaveHandle(handle);
@@ -1222,6 +1363,7 @@ async function fsTryRestoreHandle(){
           realized=data.realized||[];
           equity=data.equity||[];
           trades=data.trades||[];
+          treasury=data.treasury||[];
           lsRawSave();
         }
       }catch(e){}
@@ -2210,10 +2352,24 @@ function renderSignals(){
 
 // ═══ EQUITY CURVE ═══
 let _eqTf='all';
+let _eqShowMA=false;
+let _eqMAPeriod=20;
 window.setEqTf=function(tf,btn){
   _eqTf=tf;
   document.querySelectorAll('.eq-tf-btn').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
+  rebuildEqChart();
+};
+window.toggleEqMA=function(){
+  _eqShowMA=!_eqShowMA;
+  const btn=document.getElementById('eqMaBtn');
+  const sel=document.getElementById('eqMaPeriod');
+  if(btn){btn.classList.toggle('on',_eqShowMA);btn.style.color=_eqShowMA?'var(--or)':'';btn.style.borderColor=_eqShowMA?'var(--or)':'';}
+  if(sel){sel.style.display=_eqShowMA?'inline-block':'none';}
+  rebuildEqChart();
+};
+window.setEqMAPeriod=function(val){
+  _eqMAPeriod=parseInt(val)||20;
   rebuildEqChart();
 };
 
@@ -2247,11 +2403,20 @@ function rebuildEqChart(){
   if(mddEl)mddEl.textContent=dd.maxDDp>0?'-'+dd.maxDDp.toFixed(2)+'%':'—';
   if(eqChart)eqChart.destroy();
   const lineColor=ret>=0?'#00e639':'#ff1a2e';
+  const datasets=[{data:vals,borderColor:lineColor,borderWidth:1.5,pointRadius:0,pointBackgroundColor:lineColor,tension:0.2,fill:true,backgroundColor:ret>=0?'rgba(0,230,57,.06)':'rgba(255,26,46,.06)'}];
+  if(_eqShowMA&&vals.length>_eqMAPeriod){
+    const maVals=vals.map((v,i)=>{
+      if(i<_eqMAPeriod-1)return null;
+      const slice=vals.slice(i-_eqMAPeriod+1,i+1);
+      return slice.reduce((s,x)=>s+x,0)/slice.length;
+    });
+    datasets.push({data:maVals,borderColor:'rgba(255,170,0,0.85)',borderWidth:1.2,pointRadius:0,tension:0.2,fill:false,borderDash:[4,3],label:'MA'+_eqMAPeriod});
+  }
   eqChart=new Chart(document.getElementById('eqChart'),{
     type:'line',
-    data:{labels,datasets:[{data:vals,borderColor:lineColor,borderWidth:1.5,pointRadius:0,pointBackgroundColor:lineColor,tension:0.2,fill:true,backgroundColor:ret>=0?'rgba(0,230,57,.06)':'rgba(255,26,46,.06)'}]},
+    data:{labels,datasets},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${fm(c.raw)}`,title:t=>{const d=new Date(pts[t[0].dataIndex].ts);return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}}}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label?` ${c.dataset.label}: ${fm(c.raw)}`:`  ${fm(c.raw)}`,title:t=>{const d=new Date(pts[t[0].dataIndex].ts);return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}}}},
       scales:{
         x:{ticks:{color:'#777',font:{size:8,family:"'IBM Plex Mono'"},maxTicksLimit:10,maxRotation:0},grid:{color:'rgba(255,255,255,.03)'}},
         y:{ticks:{color:'#777',font:{size:9,family:"'IBM Plex Mono'"},callback:v=>{const av=Math.abs(v);return(v<0?'-':'')+(av>=1000?'$'+Math.round(av/1000)+'k':'$'+Math.round(av));}},grid:{color:'rgba(255,255,255,.04)'}}
@@ -2834,16 +2999,286 @@ document.getElementById('sellModal').addEventListener('click',e=>{if(e.target===
 document.getElementById('tradeEditModal').addEventListener('click',e=>{if(e.target===document.getElementById('tradeEditModal'))closeTradeEdit();});
 document.getElementById('ms').addEventListener('input',function(){this.value=this.value.toUpperCase();});
 
+// ═══ TREASURY ═══
+let _trChart=null;
+let _trShowMA=false;
+
+function renderTreasury(){
+  renderTrKpis();
+  renderTrTable();
+  renderTrChart(_trShowMA);
+}
+
+function renderTrKpis(){
+  // Total realized P&L = sum of realized[] + sum of trades[] where pnl exists
+  const rPnl = realized.reduce((s,r)=>s+(r.pnl||0),0);
+  const tPnl = trades.filter(t=>!t.legacy).reduce((s,t)=>s+(parseFloat(t.pnl)||0),0);
+  const totalRPnl = rPnl + tPnl;
+
+  // BTC treasury stats
+  const totalUsd = treasury.reduce((s,p)=>s+(parseFloat(p.usd)||0),0);
+  const totalBtc = treasury.reduce((s,p)=>s+(parseFloat(p.btc)||0),0);
+  const btcPrice = prices['BTC']||prices['BTCUSDT']||0;
+  const totalVal = totalBtc * btcPrice;
+  const totalGain = totalVal - totalUsd;
+
+  // Cash kept = realized P&L minus what was deployed to BTC
+  const cashKept = totalRPnl - totalUsd;
+
+  function fmt(v,dec=2){return v>=0?'+$'+v.toFixed(dec).replace(/\B(?=(\d{3})+(?!\d))/g,','):'−$'+Math.abs(v).toFixed(dec).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+  function fmtU(v){return '$'+v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+  function cls(v){return v>=0?'pos':'neg';}
+
+  const kpis=document.getElementById('trKpis');
+  if(!kpis)return;
+  kpis.innerHTML=`
+    <div class="tr-kpi">
+      <div class="tr-kpi-label">TOTAL REALIZED P&L</div>
+      <div class="tr-kpi-val ${cls(totalRPnl)}">${fmt(totalRPnl)}</div>
+      <div class="tr-kpi-sub">portfolio + trades combined</div>
+    </div>
+    <div class="tr-kpi">
+      <div class="tr-kpi-label">USD → BTC TREASURY</div>
+      <div class="tr-kpi-val">${fmtU(totalUsd)}</div>
+      <div class="tr-kpi-sub">${totalBtc.toFixed(6)} BTC purchased</div>
+    </div>
+    <div class="tr-kpi">
+      <div class="tr-kpi-label">BTC ACCUMULATED</div>
+      <div class="tr-kpi-val" style="color:var(--or)">${totalBtc.toFixed(6)} ₿</div>
+      <div class="tr-kpi-sub">${treasury.length} purchase${treasury.length!==1?'s':''}</div>
+    </div>
+    <div class="tr-kpi">
+      <div class="tr-kpi-label">TREASURY VALUE</div>
+      <div class="tr-kpi-val ${cls(totalGain)}">${fmtU(totalVal)}</div>
+      <div class="tr-kpi-sub">gain: ${fmt(totalGain)}</div>
+    </div>
+    <div class="tr-kpi">
+      <div class="tr-kpi-label">P&L KEPT AS CASH</div>
+      <div class="tr-kpi-val ${cls(cashKept)}">${fmt(cashKept)}</div>
+      <div class="tr-kpi-sub">realized minus deployed</div>
+    </div>
+  `;
+}
+
+function renderTrTable(){
+  const tbody=document.getElementById('trTableBody');
+  if(!tbody)return;
+  const btcPrice=prices['BTC']||prices['BTCUSDT']||0;
+  if(!treasury.length){
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--mu);padding:24px">No purchases logged yet</td></tr>';
+    return;
+  }
+  const sorted=[...treasury].sort((a,b)=>a.date<b.date?1:-1);
+  tbody.innerHTML=sorted.map(p=>{
+    const curVal=(parseFloat(p.btc)||0)*btcPrice;
+    const gain=curVal-(parseFloat(p.usd)||0);
+    const gainPct=p.usd?gain/p.usd*100:0;
+    const cls=gain>=0?'pos':'neg';
+    const fmtD=v=>'$'+parseFloat(v||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+    const fmtP=v=>'$'+parseFloat(v||0).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+    return `<tr>
+      <td>${p.date||'—'}</td>
+      <td>${fmtD(p.usd)}</td>
+      <td>${parseFloat(p.btc||0).toFixed(6)}</td>
+      <td>${fmtP(p.pricePaid)}</td>
+      <td>${fmtD(curVal)}</td>
+      <td class="${cls}">${gain>=0?'+':''}${fmtD(gain)} (${gainPct>=0?'+':''}${gainPct.toFixed(1)}%)</td>
+      <td style="color:var(--mu2);font-size:11px">${p.note||'—'}</td>
+      <td><span class="tr-del" onclick="deleteTrPurchase('${p.id}')">✕</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderTrChart(showMA){
+  const canvas=document.getElementById('trChart');
+  if(!canvas)return;
+  if(_trChart){_trChart.destroy();_trChart=null;}
+
+  // Build time-series from equity array
+  const eqPoints=equity.map(e=>({x:new Date(e.ts),y:e.value})).sort((a,b)=>a.x-b.x);
+
+  // Build cumulative realized P&L over time from realized[]
+  const rSorted=[...realized].sort((a,b)=>a.ts-b.ts);
+  let cumPnl=0;
+  const pnlPoints=rSorted.map(r=>{cumPnl+=(r.pnl||0);return{x:new Date(r.ts),y:cumPnl};});
+
+  // Build BTC treasury value over time (each purchase snaps forward)
+  const btcPrice=prices['BTC']||prices['BTCUSDT']||0;
+  const trSorted=[...treasury].sort((a,b)=>a.date<b.date?-1:1);
+  let btcAccum=0;
+  const tsvPoints=[];
+  trSorted.forEach(p=>{
+    btcAccum+=parseFloat(p.btc)||0;
+    tsvPoints.push({x:new Date(p.date+'T12:00:00'),y:btcAccum*btcPrice});
+  });
+  // Add current value as last point
+  if(tsvPoints.length){tsvPoints.push({x:new Date(),y:btcAccum*btcPrice});}
+
+  const datasets=[
+    {
+      label:'Portfolio Equity',
+      data:eqPoints,
+      borderColor:'#00e639',
+      backgroundColor:'rgba(0,230,57,0.06)',
+      borderWidth:1.5,
+      pointRadius:0,
+      tension:0.3,
+      fill:false,
+    },
+    {
+      label:'BTC Treasury Value',
+      data:tsvPoints,
+      borderColor:'#ff6200',
+      backgroundColor:'rgba(255,98,0,0.06)',
+      borderWidth:1.5,
+      borderDash:[6,3],
+      pointRadius:tsvPoints.length>0?3:0,
+      pointBackgroundColor:'#ff6200',
+      tension:0.1,
+      fill:false,
+    },
+    {
+      label:'Cumulative Realized P&L',
+      data:pnlPoints,
+      borderColor:'#ffaa00',
+      backgroundColor:'rgba(255,170,0,0.06)',
+      borderWidth:1.5,
+      borderDash:[3,3],
+      pointRadius:0,
+      tension:0.3,
+      fill:false,
+    },
+  ];
+
+  // MA overlay on equity
+  if(showMA&&eqPoints.length>20){
+    const period=20;
+    const maPoints=eqPoints.map((pt,i)=>{
+      if(i<period-1)return null;
+      const slice=eqPoints.slice(i-period+1,i+1);
+      const avg=slice.reduce((s,p)=>s+p.y,0)/period;
+      return{x:pt.x,y:avg};
+    }).filter(Boolean);
+    datasets.push({
+      label:'20-pt MA',
+      data:maPoints,
+      borderColor:'rgba(255,255,255,0.5)',
+      borderWidth:1,
+      pointRadius:0,
+      tension:0.3,
+      fill:false,
+    });
+  }
+
+  _trChart=new Chart(canvas,{
+    type:'line',
+    data:{datasets},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      animation:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{
+          display:false, // we have a custom legend
+        },
+        tooltip:{
+          backgroundColor:'rgba(0,0,0,0.85)',
+          borderColor:'var(--bd)',
+          borderWidth:1,
+          titleColor:'#ccc',
+          bodyColor:'#eee',
+          callbacks:{
+            label:ctx=>{
+              const v=ctx.parsed.y;
+              return ` ${ctx.dataset.label}: $${v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{
+          type:'time',
+          time:{tooltipFormat:'MMM d, yyyy'},
+          grid:{color:'rgba(255,255,255,0.04)'},
+          ticks:{color:'#556',font:{size:10},maxTicksLimit:8},
+        },
+        y:{
+          grid:{color:'rgba(255,255,255,0.04)'},
+          ticks:{
+            color:'#556',font:{size:10},
+            callback:v=>'$'+v.toLocaleString('en-US',{notation:'compact',maximumFractionDigits:1})
+          },
+        }
+      }
+    }
+  });
+}
+
+window.openTrModal=function(){
+  const m=document.getElementById('trModal');
+  if(!m)return;
+  // Default date to today
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('trInDate').value=today;
+  document.getElementById('trInUsd').value='';
+  document.getElementById('trInBtc').value='';
+  document.getElementById('trInNote').value='';
+  document.getElementById('trModalNote').textContent='';
+  m.classList.add('on');
+};
+
+window.closeTrModal=function(){
+  const m=document.getElementById('trModal');
+  if(m)m.classList.remove('on');
+};
+
+window.saveTrPurchase=function(){
+  const date=document.getElementById('trInDate').value.trim();
+  const usd=parseFloat(document.getElementById('trInUsd').value);
+  const btc=parseFloat(document.getElementById('trInBtc').value);
+  const note=document.getElementById('trInNote').value.trim();
+  const noteEl=document.getElementById('trModalNote');
+
+  if(!date){noteEl.textContent='⚠ Date required';return;}
+  if(!usd||usd<=0){noteEl.textContent='⚠ USD amount must be > 0';return;}
+  if(!btc||btc<=0){noteEl.textContent='⚠ BTC amount must be > 0';return;}
+
+  const pricePaid=usd/btc;
+  const entry={id:mkId(),date,usd,btc,pricePaid,note};
+  treasury.push(entry);
+  lsRawSave();
+  fsWrite();
+  closeTrModal();
+  renderTreasury();
+};
+
+window.deleteTrPurchase=function(id){
+  if(!confirm('Remove this BTC purchase entry?'))return;
+  treasury=treasury.filter(p=>p.id!==id);
+  lsRawSave();
+  fsWrite();
+  renderTreasury();
+};
+
+window.toggleTrMA=function(){
+  _trShowMA=!_trShowMA;
+  const btn=document.getElementById('trMaBtn');
+  if(btn)btn.classList.toggle('on',_trShowMA);
+  renderTrChart(_trShowMA);
+};
+
 // ═══ MAIN TAB SWITCHING ═══
 let _activeMainTab='portfolio';
 window.switchMainTab=function(tab){
   _activeMainTab=tab;
-  ['portfolio','trades','dash'].forEach(t=>{
-    document.getElementById(t+'Tab').style.display=t===tab?(t==='portfolio'?'flex':'flex'):'none';
+  ['portfolio','trades','dash','treasury'].forEach(t=>{
+    document.getElementById(t+'Tab').style.display=t===tab?'flex':'none';
     document.getElementById('tab-'+t).classList.toggle('on',t===tab);
   });
   if(tab==='trades')renderTrades();
   if(tab==='dash'){renderDashboard();}
+  if(tab==='treasury'){renderTreasury();}
 };
 
 // ═══ LEGACY TRADES ═══
