@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PORTFOLIO TERMINAL v5.1</title>
+<title>PORTFOLIO TERMINAL v5.2</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -494,6 +494,7 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
             <th class="sortable" onclick="cycleSort('chg')">24H%</th>
             <th class="sortable" onclick="cycleSort('totalAmt')">AMOUNT</th>
             <th class="sortable" onclick="cycleSort('val')">VALUE</th>
+            <th class="sortable" onclick="cycleSort('cost')">COST</th>
             <th class="sortable" onclick="cycleSort('avgBuy')">AVG BUY</th>
             <th class="sortable" onclick="cycleSort('pnl')">UNREAL P&L</th>
             <th class="sortable" onclick="cycleSort('pnlp')">P&L%</th>
@@ -842,9 +843,9 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
         <table class="tr-table">
           <thead><tr>
             <th style="text-align:left">DATE</th>
-            <th>USD SPENT</th>
-            <th>BTC RECEIVED</th>
+            <th>BTC BOUGHT</th>
             <th>PRICE PAID</th>
+            <th>USD SPENT</th>
             <th>CURRENT VALUE</th>
             <th>GAIN</th>
             <th>NOTE</th>
@@ -886,8 +887,8 @@ tbody tr.heat-hold td:first-child{border-left:2px solid rgba(0,230,57,.4);}
       </div>
       <div class="tr-modal-body">
         <div class="tr-field"><label>DATE</label><input type="date" id="trInDate"></div>
-        <div class="tr-field"><label>USD SPENT (from profits)</label><input type="number" id="trInUsd" placeholder="5000" step="0.01"></div>
-        <div class="tr-field"><label>BTC RECEIVED</label><input type="number" id="trInBtc" placeholder="0.08000" step="0.00001"></div>
+        <div class="tr-field"><label>BTC BOUGHT</label><input type="number" id="trInBtc" placeholder="0.08000" step="0.00001"></div>
+        <div class="tr-field"><label>PRICE PAID (USD/BTC)</label><input type="number" id="trInPrice" placeholder="67500" step="0.01"></div>
         <div class="tr-field"><label>NOTE (optional)</label><input type="text" id="trInNote" placeholder="e.g. from Oct profits"></div>
       </div>
       <div id="trModalNote" style="color:var(--r);font-size:11px;padding:0 0 6px 0;min-height:16px"></div>
@@ -1953,6 +1954,7 @@ function render(){
       if(sortCol==='chg')return r.chg??-Infinity;
       if(sortCol==='totalAmt')return r.totalAmt;
       if(sortCol==='val')return r.val??-Infinity;
+      if(sortCol==='cost')return r.cost??-Infinity;
       if(sortCol==='avgBuy')return r.avgBuy;
       if(sortCol==='pnl')return r.pnl??-Infinity;
       if(sortCol==='pnlp')return r.pnlp??-Infinity;
@@ -2002,6 +2004,7 @@ function render(){
       <td class="${fc(r.chg)}">${r.chg!=null?fp(r.chg):'—'}</td>
       <td>${r.totalAmt.toLocaleString('en-US',{maximumFractionDigits:6})}</td>
       <td class="ne">${r.val!=null?fm(r.val):'—'}</td>
+      <td style="color:var(--mu2)">${r.cost>0?fm(r.cost):'—'}</td>
       <td style="color:var(--mu);cursor:pointer" onclick="openTradeHistoryChart('${r.sym}')" title="Avg buy: $${r.avgBuy.toPrecision(10)} · Click for chart">${fm(r.avgBuy)}</td>
       <td class="${fc(r.pnl)}">${r.pnl!=null?fm(r.pnl):'—'}</td>
       <td class="${fc(r.pnlp)}">${r.pnlp!=null?fp(r.pnlp):'—'}</td>
@@ -2922,7 +2925,7 @@ window.closeExportModal=function(){
 };
 window.doExportJSON=function(mode){
   closeExportModal();
-  const backup={version:3,exported:new Date().toISOString(),portfolio,history,realized,equity,trades};
+  const backup={version:3,exported:new Date().toISOString(),portfolio,history,realized,equity,trades,treasury};
   const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
@@ -3078,9 +3081,9 @@ function renderTrTable(){
     const fmtP=v=>'$'+parseFloat(v||0).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');
     return `<tr>
       <td>${p.date||'—'}</td>
-      <td>${fmtD(p.usd)}</td>
-      <td>${parseFloat(p.btc||0).toFixed(6)}</td>
+      <td>${parseFloat(p.btc||0).toFixed(6)} ₿</td>
       <td>${fmtP(p.pricePaid)}</td>
+      <td>${fmtD(p.usd)}</td>
       <td>${fmtD(curVal)}</td>
       <td class="${cls}">${gain>=0?'+':''}${fmtD(gain)} (${gainPct>=0?'+':''}${gainPct.toFixed(1)}%)</td>
       <td style="color:var(--mu2);font-size:11px">${p.note||'—'}</td>
@@ -3221,8 +3224,8 @@ window.openTrModal=function(){
   // Default date to today
   const today=new Date().toISOString().slice(0,10);
   document.getElementById('trInDate').value=today;
-  document.getElementById('trInUsd').value='';
   document.getElementById('trInBtc').value='';
+  document.getElementById('trInPrice').value='';
   document.getElementById('trInNote').value='';
   document.getElementById('trModalNote').textContent='';
   m.classList.add('on');
@@ -3235,16 +3238,16 @@ window.closeTrModal=function(){
 
 window.saveTrPurchase=function(){
   const date=document.getElementById('trInDate').value.trim();
-  const usd=parseFloat(document.getElementById('trInUsd').value);
   const btc=parseFloat(document.getElementById('trInBtc').value);
+  const pricePaid=parseFloat(document.getElementById('trInPrice').value);
   const note=document.getElementById('trInNote').value.trim();
   const noteEl=document.getElementById('trModalNote');
 
   if(!date){noteEl.textContent='⚠ Date required';return;}
-  if(!usd||usd<=0){noteEl.textContent='⚠ USD amount must be > 0';return;}
   if(!btc||btc<=0){noteEl.textContent='⚠ BTC amount must be > 0';return;}
+  if(!pricePaid||pricePaid<=0){noteEl.textContent='⚠ Price paid must be > 0';return;}
 
-  const pricePaid=usd/btc;
+  const usd=btc*pricePaid;
   const entry={id:mkId(),date,usd,btc,pricePaid,note};
   treasury.push(entry);
   lsRawSave();
