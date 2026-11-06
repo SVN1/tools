@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anthropic Spread Trade v1</title>
+<style>
+  :root { --bg:#0e1116; --panel:#161b22; --line:#2a313c; --fg:#e6edf3; --mut:#8b949e; --pos:#3fb950; --neg:#f85149; --acc:#58a6ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; padding:24px 16px; }
+  .wrap { max-width:1100px; margin:0 auto; }
+  h1 { font-size:16px; letter-spacing:.08em; margin:0 0 16px; color:var(--acc); }
+  .form { display:grid; grid-template-columns: 2fr 1fr 1.2fr 1.2fr auto; gap:10px; align-items:end; background:var(--panel); border:1px solid var(--line); padding:14px; border-radius:6px; }
+  label { display:block; font-size:11px; color:var(--mut); margin-bottom:4px; text-transform:uppercase; letter-spacing:.06em; }
+  input { width:100%; background:var(--bg); color:var(--fg); border:1px solid var(--line); border-radius:4px; padding:8px; font:inherit; }
+  button { background:var(--acc); color:#000; border:0; border-radius:4px; padding:9px 16px; font:inherit; font-weight:700; cursor:pointer; }
+  button.sec { background:transparent; color:var(--acc); border:1px solid var(--acc); }
+  #status { margin:12px 0; color:var(--mut); min-height:1.4em; }
+  .tiles { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:12px 0; }
+  .tile { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:12px; }
+  .tile .k { font-size:11px; color:var(--mut); text-transform:uppercase; letter-spacing:.06em; }
+  .tile .v { font-size:20px; margin-top:4px; }
+  .pos { color:var(--pos); } .neg { color:var(--neg); }
+  table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); }
+  th, td { padding:6px 10px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; }
+  th:first-child, td:first-child { text-align:left; }
+  th { color:var(--mut); font-weight:400; font-size:11px; text-transform:uppercase; position:sticky; top:0; background:var(--panel); }
+  .tbl { max-height:60vh; overflow:auto; border-radius:6px; }
+  .row { display:flex; justify-content:space-between; align-items:center; margin-top:16px; gap:10px; flex-wrap:wrap; }
+  .note { color:var(--mut); font-size:12px; }
+  .hero { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:12px; }
+  .hero .tile { padding:18px; }
+  .hero .v { font-size:32px; font-weight:700; }
+  .hero .sub { color:var(--mut); font-size:12px; margin-top:6px; }
+  .hero .tile.total { border-color:var(--acc); }
+  .small .tile { padding:8px 10px; }
+  .small .v { font-size:13px; }
+  .small .k { font-size:10px; }
+  details { margin-top:10px; } summary { cursor:pointer; color:var(--mut); font-size:12px; }
+  .form.pos4 { grid-template-columns:repeat(4,1fr) auto; margin-bottom:12px; }
+  @media (max-width:800px) { .hero { grid-template-columns:1fr; } }
+  @media (max-width:800px) { .form { grid-template-columns:1fr 1fr; } .tiles { grid-template-columns:1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ANTHROPIC SPREAD · PNL</h1>
+  <div id="hero" class="hero">
+    <div class="tile total"><div class="k">Total PnL (USDC)</div><div class="v" id="pTotal">–</div><div class="sub">spread PnL + funding</div></div>
+    <div class="tile"><div class="k">Spread PnL</div><div class="v" id="pSpread">–</div><div class="sub" id="pSpreadSub"></div></div>
+    <div class="tile"><div class="k">Funding</div><div class="v" id="pFund">–</div><div class="sub" id="pFundSub"></div></div>
+  </div>
+  <div class="form pos4">
+    <div><label>Entry HL price</label><input id="eHL" type="number" step="any" value="1659"></div>
+    <div><label>Entry Binance price</label><input id="eBN" type="number" step="any" value="1412.35122"></div>
+    <div><label>Size (units, auto from HL)</label><input id="size" type="number" step="any" placeholder="auto"></div>
+    <div><label>Binance funding (USDC, manual)</label><input id="bnFund" type="number" step="any" value="0"></div>
+    <div></div>
+  </div>
+
+  <div class="form" style="grid-template-columns:1fr 1fr auto; margin-bottom:6px">
+    <div><label>Alert if total PnL below</label><input id="aPnl" type="number" step="any" placeholder="off"></div>
+    <div><label>Alert if spread below</label><input id="aSpr" type="number" step="any" placeholder="off"></div>
+    <div><button class="sec" id="aTest">Test</button></div>
+  </div>
+  <div id="alertBar" class="note" style="margin-bottom:12px"></div>
+
+  <h1 style="margin-top:20px; font-size:12px">FUNDING QUERY (HYPERLIQUID)</h1>
+  <div class="form">
+    <div><label>Address</label><input id="addr" value="0xb2f42334ffFC3947B4c79C7E3DC3D387D391f148"></div>
+    <div><label>Symbol</label><input id="coin" value="io:ANTH"></div>
+    <div><label>From (your local time)</label><input id="from" type="datetime-local" value="2026-11-05T00:00"></div>
+    <div><label>To (blank = now)</label><input id="to" type="datetime-local" value=""></div>
+    <div><button id="go">Fetch</button></div>
+  </div>
+  <h1 style="margin-top:20px; font-size:12px">PRICES · HYPERLIQUID vs BINANCE <span class="note" id="pxtime" style="letter-spacing:0"></span></h1>
+  <div class="form" style="grid-template-columns:1fr 1fr 1fr auto">
+    <div><label>Hyperliquid symbol</label><input id="hlsym" value="io:ANTH"></div>
+    <div><label>Binance USDⓈ-M symbol</label><input id="bnsym" value="ANTHROPICUSDT"></div>
+    <div><label>Auto-refresh</label><input id="refresh" type="number" min="0" value="10" title="seconds, 0 = off"></div>
+    <div><button id="pxgo">Refresh</button></div>
+  </div>
+  <div id="pxstatus" class="note" style="margin-top:8px"></div>
+  <div id="prices" class="small"></div>
+
+  <h1 style="margin-top:20px; font-size:12px">FUNDING DETAIL</h1>
+  <div id="status"></div>
+  <div id="out" class="small"></div>
+</div>
+
+<script>
+const API = "https://api.hyperliquid.xyz/info";
+const $ = id => document.getElementById(id);
+const fmt = (n, d=2) => Number(n).toLocaleString(undefined, {minimumFractionDigits:d, maximumFractionDigits:d});
+const cls = n => n < 0 ? "neg" : n > 0 ? "pos" : "";
+const state = { fund:null, szi:null, coin:null, hMark:null, bMark:null };
+const sgn = (n,d=2) => (n>0?"+":"") + fmt(n,d);
+
+async function post(body) {
+  const r = await fetch(API, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body) });
+  if (!r.ok) throw new Error("HTTP " + r.status + " " + await r.text());
+  return r.json();
+}
+
+// Paginate userFunding (API caps each response, so walk forward by time)
+async function fetchFunding(user, start, end, dex) {
+  let all = [], cursor = start, guard = 0;
+  while (guard++ < 200) {
+    const body = { type:"userFunding", user, startTime: cursor };
+    if (end) body.endTime = end;
+    if (dex !== undefined) body.dex = dex;
+    const page = await post(body);
+    if (!Array.isArray(page) || page.length === 0) break;
+    all = all.concat(page);
+    $("status").textContent = `Fetched ${all.length} funding records…`;
+    const last = page[page.length - 1].time;
+    if (page.length < 500 || last <= cursor) break;
+    cursor = last + 1;
+  }
+  // de-dupe
+  const seen = new Set();
+  return all.filter(x => { const k = x.time + "|" + x.delta.coin; if (seen.has(k)) return false; seen.add(k); return true; });
+}
+
+function matches(coin, want) {
+  const c = coin.toLowerCase(), w = want.toLowerCase();
+  if (c === w) return true;
+  // tolerate the API returning the bare ticker or a different prefix style
+  const wt = w.includes(":") ? w.split(":")[1] : w;
+  return c === wt || c.endsWith(":" + wt);
+}
+
+async function run() {
+  const user = $("addr").value.trim();
+  const want = $("coin").value.trim();
+  const start = new Date($("from").value).getTime();
+  const end = $("to").value ? new Date($("to").value).getTime() : null;
+  $("out").innerHTML = "";
+  if (!/^0x[0-9a-fA-F]{40}$/.test(user)) { $("status").textContent = "Invalid address."; return; }
+  if (isNaN(start)) { $("status").textContent = "Invalid start date."; return; }
+
+  try {
+    $("status").textContent = "Querying Hyperliquid…";
+    let rows = await fetchFunding(user, start, end);
+    let hits = rows.filter(x => matches(x.delta.coin, want));
+    let seenCoins = new Set(rows.map(x => x.delta.coin));
+
+    // HIP-3 builder dex perps may need the dex named explicitly
+    if (hits.length === 0 && want.includes(":")) {
+      const dex = want.split(":")[0];
+      $("status").textContent = `Nothing in default dex, trying dex "${dex}"…`;
+      try {
+        const rows2 = await fetchFunding(user, start, end, dex);
+        rows2.forEach(x => seenCoins.add(x.delta.coin));
+        hits = rows2.filter(x => matches(x.delta.coin, want));
+      } catch (e) { console.warn("dex query failed", e); }
+    }
+
+    if (hits.length === 0) {
+      $("status").innerHTML = `No funding records for <b>${want}</b> in that window.` +
+        (seenCoins.size ? ` Coins with funding in the window: ${[...seenCoins].sort().join(", ")}` : " No funding records at all in that window.");
+      return;
+    }
+    render(hits.sort((a,b) => a.time - b.time), want, start, end);
+  } catch (e) {
+    $("status").textContent = "Error: " + e.message + " (open DevTools console for details)";
+    console.error(e);
+  }
+}
+
+function render(hits, want, start, end) {
+  let total = 0, paid = 0, recv = 0;
+  hits.forEach(h => { const u = +h.delta.usdc; total += u; if (u < 0) paid += u; else recv += u; });
+  state.fund = total; state.szi = +hits[hits.length-1].delta.szi; state.coin = hits[0].delta.coin; calcPnl();
+  const first = new Date(hits[0].time), last = new Date(hits[hits.length-1].time);
+  $("status").textContent = `${hits.length} hourly payments for ${hits[0].delta.coin} · ${first.toLocaleString()} → ${last.toLocaleString()}`;
+
+  // daily rollup (local time)
+  const days = {};
+  hits.forEach(h => {
+    const d = new Date(h.time).toLocaleDateString(undefined, {year:"numeric", month:"short", day:"2-digit"});
+    days[d] = (days[d] || 0) + (+h.delta.usdc);
+  });
+
+  let html = `<div class="tiles">
+    <div class="tile"><div class="k">Net funding (USDC)</div><div class="v ${cls(total)}">${fmt(total)}</div></div>
+    <div class="tile"><div class="k">Paid</div><div class="v neg">${fmt(paid)}</div></div>
+    <div class="tile"><div class="k">Received</div><div class="v pos">${fmt(recv)}</div></div>
+    <div class="tile"><div class="k">Payments</div><div class="v">${hits.length}</div></div>
+  </div>
+  <div class="tiles">` + Object.entries(days).map(([d,v]) =>
+    `<div class="tile"><div class="k">${d}</div><div class="v ${cls(v)}">${fmt(v)}</div></div>`).join("") + `</div>
+  <details><summary>Hourly payments (${hits.length})</summary><div class="tbl"><table><thead><tr><th>Time (local)</th><th>Coin</th><th>Position size</th><th>Funding rate (1h)</th><th>APR equiv.</th><th>USDC</th></tr></thead><tbody>` +
+    hits.map(h => {
+      const r = +h.delta.fundingRate, u = +h.delta.usdc;
+      return `<tr><td>${new Date(h.time).toLocaleString()}</td><td>${h.delta.coin}</td><td>${fmt(h.delta.szi, 4)}</td>
+        <td>${(r*100).toFixed(5)}%</td><td>${(r*100*24*365).toFixed(2)}%</td><td class="${cls(u)}">${fmt(u, 4)}</td></tr>`;
+    }).join("") + `</tbody></table></div></details>
+  <div class="row"><span class="note">Negative = paid by the address, positive = received. Sign convention as returned by Hyperliquid's userFunding endpoint.</span>
+  <button class="sec" id="csv">Download CSV</button></div>`;
+  $("out").innerHTML = html;
+
+  $("csv").onclick = () => {
+    const lines = ["time_utc,coin,szi,funding_rate,usdc"].concat(
+      hits.map(h => [new Date(h.time).toISOString(), h.delta.coin, h.delta.szi, h.delta.fundingRate, h.delta.usdc].join(",")));
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([lines.join("\n")], {type:"text/csv"}));
+    a.download = `funding_${hits[0].delta.coin.replace(":","_")}.csv`;
+    a.click();
+  };
+}
+
+
+// ---------- PNL ----------
+function calcPnl() {
+  const eHL = +$("eHL").value, eBN = +$("eBN").value;
+  const entry = eHL - eBN;
+  const manual = +$("size").value;
+  const size = manual > 0 ? manual : (state.szi != null ? Math.abs(state.szi) : null);
+  // short HL / long Binance unless HL position is long
+  const shortHL = state.szi == null ? true : state.szi < 0;
+  const bnF = +$("bnFund").value || 0;
+  const hlF = state.fund ?? 0;
+  const fund = hlF + bnF;
+
+  let spread = null;
+  if (size && state.hMark && state.bMark) {
+    const cur = state.hMark - state.bMark;
+    spread = size * (shortHL ? (entry - cur) : (cur - entry));
+    $("pSpreadSub").textContent = `entry ${fmt(entry)} → now ${fmt(cur)} · ${fmt(size,4)} units · ${shortHL ? "short HL / long BN" : "long HL / short BN"}`;
+  } else {
+    $("pSpreadSub").textContent = `entry spread ${fmt(entry)}` + (size ? "" : " · waiting for size");
+  }
+  const el = (id, v) => { const e = $(id); e.textContent = v == null ? "–" : sgn(v); e.className = "v " + (v == null ? "" : cls(v)); };
+  el("pSpread", spread);
+  el("pFund", state.fund == null && !bnF ? null : fund);
+  $("pFundSub").textContent = `HL ${state.fund == null ? "–" : sgn(hlF)}` + (bnF ? ` · Binance ${sgn(bnF)}` : " · Binance not included");
+  el("pTotal", spread == null ? null : spread + fund);
+  state.total = spread == null ? null : spread + fund;
+  state.spread = (state.hMark && state.bMark) ? state.hMark - state.bMark : null;
+  checkAlerts();
+}
+
+// ---------- ALERTS ----------
+const ALERT_KEYS = ["aPnl","aSpr"];
+try { ALERT_KEYS.forEach(k => { const v = localStorage.getItem("hlmon_" + k); if (v !== null) $(k).value = v; }); } catch(e) {}
+ALERT_KEYS.forEach(k => $(k).addEventListener("input", () => { try { localStorage.setItem("hlmon_" + k, $(k).value); } catch(e) {} armed[k] = true; checkAlerts(); }));
+const armed = { aPnl:true, aSpr:true };
+
+function beep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.25, 0.5].forEach(t => { const o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.value = 880; o.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(0.2, ctx.currentTime + t); o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.15); });
+  } catch(e) {}
+}
+
+function fire(title, msg) {
+  beep();
+  document.title = "⚠ " + title;
+  $("alertBar").innerHTML = `<span class="neg">⚠ ${new Date().toLocaleTimeString()} · ${title}: ${msg}</span>`;
+  try { if ("Notification" in window && Notification.permission === "granted") new Notification(title, { body: msg }); } catch(e) {}
+}
+
+// fires once when a level is crossed, re-arms when it recovers above
+function checkAlerts() {
+  const lp = $("aPnl").value, ls = $("aSpr").value;
+  const st = [];
+  if (lp !== "" && state.total != null) {
+    const below = state.total < +lp;
+    if (below && armed.aPnl) { armed.aPnl = false; fire("PnL alert", `Total PnL ${sgn(state.total)} is below ${fmt(+lp)} (spread ${fmt(state.spread)})`); }
+    if (!below) armed.aPnl = true;
+    st.push(`PnL < ${fmt(+lp)}: ${armed.aPnl ? "armed" : "TRIGGERED"}`);
+  }
+  if (ls !== "" && state.spread != null) {
+    const below = state.spread < +ls;
+    if (below && armed.aSpr) { armed.aSpr = false; fire("Spread alert", `HL−Binance spread ${fmt(state.spread)} is below ${fmt(+ls)} (total PnL ${state.total == null ? "–" : sgn(state.total)})`); }
+    if (!below) armed.aSpr = true;
+    st.push(`spread < ${fmt(+ls)}: ${armed.aSpr ? "armed" : "TRIGGERED"}`);
+  }
+  if (!$("alertBar").innerHTML.includes("⚠")) $("alertBar").textContent = st.length ? "Alerts " + st.join(" · ") + " · page must stay open" : "";
+  if (armed.aPnl && armed.aSpr && document.title.startsWith("⚠")) document.title = "Anthropic Spread Trade v1";
+}
+
+$("aTest").onclick = () => {
+  try { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission(); } catch(e) {}
+  fire("Test alert", `Total PnL ${state.total == null ? "–" : sgn(state.total)} · spread ${state.spread == null ? "–" : fmt(state.spread)}`);
+};
+["eHL","eBN","size","bnFund"].forEach(id => $(id).oninput = calcPnl);
+
+// ---------- PRICES ----------
+let dexCache = {};
+async function hlAsset(sym) {
+  const [dex, tick] = sym.includes(":") ? sym.split(":") : ["", sym];
+  const body = { type:"metaAndAssetCtxs" };
+  if (dex) body.dex = dex;
+  const [meta, ctxs] = await post(body);
+  const names = meta.universe.map(u => u.name);
+  const bare = n => n.includes(":") ? n.split(":")[1] : n;
+  let i = names.findIndex(n => n.toLowerCase() === sym.toLowerCase() || bare(n).toLowerCase() === tick.toLowerCase());
+  let note = "";
+  if (i < 0) {
+    // fall back to closest ticker (e.g. ANT vs ANTH)
+    const t = tick.toLowerCase().slice(0, 3);
+    i = names.findIndex(n => bare(n).toLowerCase().startsWith(t));
+    if (i < 0) throw new Error(`"${sym}" not found. ${dex || "main"} dex has: ${names.join(", ")}`);
+    note = `"${sym}" not found, using ${names[i]}`;
+  }
+  return { name: names[i], ctx: ctxs[i], note };
+}
+
+async function bnAsset(sym) {
+  const base = "https://fapi.binance.com/fapi/v1/";
+  const [pi, tk] = await Promise.all([
+    fetch(base + "premiumIndex?symbol=" + encodeURIComponent(sym)).then(r => r.json()),
+    fetch(base + "ticker/24hr?symbol=" + encodeURIComponent(sym)).then(r => r.json()),
+  ]);
+  if (pi.code) throw new Error("Binance: " + pi.msg);
+  return { pi, tk };
+}
+
+function tile(k, v, c="") { return `<div class="tile"><div class="k">${k}</div><div class="v ${c}">${v}</div></div>`; }
+
+async function runPrices() {
+  const hs = $("hlsym").value.trim(), bs = $("bnsym").value.trim().toUpperCase();
+  const [h, b] = await Promise.allSettled([hlAsset(hs), bnAsset(bs)]);
+  let html = "", msgs = [];
+  let hMark = null, bMark = null;
+
+  if (h.status === "fulfilled") {
+    const c = h.value.ctx; hMark = +c.markPx;
+    const chg = c.prevDayPx ? (hMark / +c.prevDayPx - 1) * 100 : null;
+    const fr = +c.funding;
+    if (h.value.note) msgs.push(h.value.note);
+    html += `<div class="note" style="margin-top:12px">HYPERLIQUID · ${h.value.name}</div><div class="tiles">` +
+      tile("Mark", fmt(hMark, 2)) +
+      tile("Oracle", fmt(c.oraclePx, 2)) +
+      tile("24h chg", chg == null ? "–" : chg.toFixed(2) + "%", cls(chg)) +
+      tile("Funding 1h / APR", `${(fr*100).toFixed(4)}% / ${(fr*100*24*365).toFixed(1)}%`, cls(fr)) +
+      `</div>`;
+  } else msgs.push("Hyperliquid: " + h.reason.message);
+
+  if (b.status === "fulfilled") {
+    const { pi, tk } = b.value; bMark = +pi.markPrice;
+    const fr = +pi.lastFundingRate;
+    html += `<div class="note">BINANCE · ${pi.symbol}</div><div class="tiles">` +
+      tile("Mark", fmt(bMark, 2)) +
+      tile("Last", fmt(tk.lastPrice, 2)) +
+      tile("24h chg", (+tk.priceChangePercent).toFixed(2) + "%", cls(+tk.priceChangePercent)) +
+      tile("Funding (last) / next", `${(fr*100).toFixed(4)}% · ${new Date(pi.nextFundingTime).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}`, cls(fr)) +
+      `</div>`;
+  } else msgs.push("Binance: " + b.reason.message);
+
+  if (hMark && bMark) {
+    const spr = hMark - bMark, bps = (hMark / bMark - 1) * 10000;
+    state.hMark = hMark; state.bMark = bMark; calcPnl();
+    html += `<div class="tiles">` + tile("HL − Binance (mark)", fmt(spr, 2), cls(spr)) + tile("Spread (bps)", bps.toFixed(1), cls(bps)) + `</div>`;
+  }
+  $("prices").innerHTML = html;
+  $("pxstatus").textContent = msgs.join(" · ");
+  $("pxtime").textContent = "updated " + new Date().toLocaleTimeString();
+}
+
+let pxTimer = null;
+function schedulePx() {
+  clearInterval(pxTimer);
+  const s = +$("refresh").value;
+  if (s > 0) pxTimer = setInterval(runPrices, Math.max(3, s) * 1000);
+}
+$("pxgo").onclick = runPrices;
+$("refresh").onchange = schedulePx;
+
+$("go").onclick = run;
+run();
+runPrices();
+schedulePx();
+</script>
+</body>
+</html>
