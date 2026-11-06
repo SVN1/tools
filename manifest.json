@@ -22,5 +22,11 @@
     "tag": "Counterparty",
     "name": "Client Volume Tracker",
     "description": "Monitors counterparty traded volume on a weekly basis."
+  },
+  {
+    "file": "Anthropic%20Spread%20Trade%20v1.html",
+    "tag": "Trading",
+    "name": "Anthropic Spread Trade",
+    "description": "Live HL io:ANTH vs Binance ANTHROPICUSDT spread, funding cost and total PnL, with alerts."
   }
 ]
